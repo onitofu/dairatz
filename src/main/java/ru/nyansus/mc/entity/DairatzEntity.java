@@ -16,6 +16,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.FlyingMoveControl;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.OwnerHurtByTargetGoal;
+import net.minecraft.world.entity.ai.goal.target.OwnerHurtTargetGoal;
 import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.monster.RangedAttackMob;
@@ -24,6 +25,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.level.block.BonemealableBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
@@ -78,12 +80,18 @@ public class DairatzEntity extends TamableAnimal implements RangedAttackMob {
                 return !DairatzEntity.this.isOnHead() && super.canUse();
             }
         });
+        targetSelector.addGoal(2, new OwnerHurtTargetGoal(this) {
+            @Override
+            public boolean canUse() {
+                return !DairatzEntity.this.isOnHead() && super.canUse();
+            }
+        });
     }
 
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes()
                 .add(Attributes.MAX_HEALTH, DairatzConfig.fairyHealth)
-                .add(Attributes.FLYING_SPEED, 0.4)
+                .add(Attributes.FLYING_SPEED, DairatzConfig.flySpeed)
                 .add(Attributes.MOVEMENT_SPEED, 0.3)
                 .add(Attributes.FOLLOW_RANGE, 48.0)
                 .add(Attributes.TEMPT_RANGE, 16.0);
@@ -111,7 +119,7 @@ public class DairatzEntity extends TamableAnimal implements RangedAttackMob {
         if (isOnHead() && isTame()) {
             LivingEntity owner = getOwner();
             if (owner != null && owner.isAlive()) {
-                setPos(owner.getX(), owner.getEyeY() + 0.3, owner.getZ());
+                setPos(owner.getX(), owner.getEyeY() + 0.15, owner.getZ());
                 setYRot(owner.getYRot());
                 setDeltaMovement(Vec3.ZERO);
                 fallDistance = 0;
@@ -129,7 +137,9 @@ public class DairatzEntity extends TamableAnimal implements RangedAttackMob {
         }
 
         if (level().isClientSide()) {
-            if (!idleAnimationState.isStarted()) {
+            if (isOnHead()) {
+                idleAnimationState.stop();
+            } else if (!idleAnimationState.isStarted()) {
                 idleAnimationState.start(tickCount);
             }
         }
@@ -164,6 +174,14 @@ public class DairatzEntity extends TamableAnimal implements RangedAttackMob {
 
         if (isTame() && isOwnedBy(player) && !isOnHead()) {
             if (!level().isClientSide()) {
+                boolean alreadyHasFairy = !level().getEntitiesOfClass(
+                        DairatzEntity.class,
+                        player.getBoundingBox().inflate(1.0),
+                        f -> f.isOnHead() && f.isOwnedBy(player)
+                ).isEmpty();
+                if (alreadyHasFairy) {
+                    return InteractionResult.PASS;
+                }
                 setOnHead(true);
                 mountCooldown = 10;
             }

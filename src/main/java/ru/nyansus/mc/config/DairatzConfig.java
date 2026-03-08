@@ -13,14 +13,16 @@ public class DairatzConfig {
     private static final Path CONFIG_PATH = FabricLoader.getInstance()
             .getConfigDir().resolve("dairatz.json");
 
-    public static double fairyHealth = 20.0;
-    public static double furballDamage = 4.0;
-    public static int fireRate = 20;
+    public static double fairyHealth = 16.0;
+    public static double furballDamage = 2.0;
+    public static int fireRate = 40;
+    public static double flySpeed = 0.4;
 
     private static class Data {
-        double fairyHealth = 20.0;
-        double furballDamage = 4.0;
-        int fireRate = 20;
+        double fairyHealth = 16.0;
+        double furballDamage = 2.0;
+        int fireRate = 40;
+        double flySpeed = 0.4;
     }
 
     public static void load() {
@@ -32,6 +34,7 @@ public class DairatzConfig {
                     fairyHealth = data.fairyHealth;
                     furballDamage = data.furballDamage;
                     fireRate = data.fireRate;
+                    flySpeed = data.flySpeed;
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -48,6 +51,7 @@ public class DairatzConfig {
             data.fairyHealth = fairyHealth;
             data.furballDamage = furballDamage;
             data.fireRate = fireRate;
+            data.flySpeed = flySpeed;
             Files.createDirectories(CONFIG_PATH.getParent());
             Files.writeString(CONFIG_PATH, GSON.toJson(data));
         } catch (IOException e) {
