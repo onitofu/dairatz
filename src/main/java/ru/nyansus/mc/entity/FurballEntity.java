@@ -32,7 +32,10 @@ public class FurballEntity extends ThrowableItemProjectile {
     protected void onHitEntity(EntityHitResult result) {
         super.onHitEntity(result);
         Entity target = result.getEntity();
-        if (target instanceof Player || target instanceof DairatzEntity) {
+        if (target instanceof DairatzEntity) {
+            return;
+        }
+        if (target instanceof Player && target.equals(getOwner())) {
             return;
         }
         target.hurt(damageSources().thrown(this, getOwner()), (float) DairatzConfig.furballDamage);

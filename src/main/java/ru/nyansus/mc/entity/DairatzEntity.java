@@ -183,6 +183,17 @@ public class DairatzEntity extends TamableAnimal implements RangedAttackMob {
             return InteractionResult.SUCCESS;
         }
 
+        if (isTame() && isOwnedBy(player) && stack.is(Items.POPPY) && getHealth() < getMaxHealth()) {
+            if (!player.getAbilities().instabuild) {
+                stack.shrink(1);
+            }
+            if (!level().isClientSide()) {
+                heal(4.0f);
+                level().broadcastEntityEvent(this, (byte) 7);
+            }
+            return InteractionResult.SUCCESS;
+        }
+
         if (isTame() && isOwnedBy(player) && !isOnHead()) {
             if (!level().isClientSide()) {
                 boolean alreadyHasFairy = !level().getEntitiesOfClass(
