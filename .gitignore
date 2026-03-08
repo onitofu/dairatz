@@ -17,5 +17,26 @@ gradle-app.setting
 # Eclipse Gradle plugin generated files
 # Eclipse Core
 .project
+*.launch
+
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
+
+# VSCode
+
+.settings/
+.vscode/
+bin/
+.classpath
+.project
+
+# Fabric
+
+run/
+
+# Java
+
+hs_err_*.log
+replay_*.log
+*.hprof
+*.jfr
