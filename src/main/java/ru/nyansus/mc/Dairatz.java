@@ -20,39 +20,39 @@ import ru.nyansus.mc.registry.ModEntities;
 import ru.nyansus.mc.registry.ModItems;
 
 public class Dairatz implements ModInitializer {
-	public static final String MOD_ID = "dairatz";
-	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+    public static final String MOD_ID = "dairatz";
+    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-	@Override
-	public void onInitialize() {
-		DairatzConfig.load();
+    @Override
+    public void onInitialize() {
+        DairatzConfig.load();
 
-		ModEntities.register();
-		ModItems.register();
+        ModEntities.register();
+        ModItems.register();
 
-		FabricDefaultAttributeRegistry.register(ModEntities.DAIRATZ_ENTITY, DairatzEntity.createAttributes());
+        FabricDefaultAttributeRegistry.register(ModEntities.DAIRATZ_ENTITY, DairatzEntity.createAttributes());
 
-		SpawnPlacements.register(
-				ModEntities.DAIRATZ_ENTITY,
-				SpawnPlacementTypes.NO_RESTRICTIONS,
-				Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-				DairatzEntity::checkFairySpawnRules
-		);
+        SpawnPlacements.register(
+                ModEntities.DAIRATZ_ENTITY,
+                SpawnPlacementTypes.NO_RESTRICTIONS,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                DairatzEntity::checkFairySpawnRules
+        );
 
-		BiomeModifications.addSpawn(
-				BiomeSelectors.includeByKey(Biomes.FLOWER_FOREST, Biomes.MEADOW, Biomes.SUNFLOWER_PLAINS),
-				MobCategory.CREATURE,
-				ModEntities.DAIRATZ_ENTITY,
-				10, 2, 4
-		);
+        BiomeModifications.addSpawn(
+                BiomeSelectors.includeByKey(Biomes.FLOWER_FOREST, Biomes.MEADOW, Biomes.SUNFLOWER_PLAINS),
+                MobCategory.CREATURE,
+                ModEntities.DAIRATZ_ENTITY,
+                10, 2, 4
+        );
 
-		ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.SPAWN_EGGS).register(entries -> {
-			entries.accept(new ItemStack(ModItems.DAIRATZ_SPAWN_EGG));
-		});
-		ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.INGREDIENTS).register(entries -> {
-			entries.accept(new ItemStack(ModItems.FURBALL));
-		});
+        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.SPAWN_EGGS).register(entries -> {
+            entries.accept(new ItemStack(ModItems.DAIRATZ_SPAWN_EGG));
+        });
+        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.INGREDIENTS).register(entries -> {
+            entries.accept(new ItemStack(ModItems.FURBALL));
+        });
 
-		LOGGER.info("Dairatz mod initialized!");
-	}
+        LOGGER.info("Dairatz mod initialized!");
+    }
 }

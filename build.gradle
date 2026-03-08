@@ -1,6 +1,7 @@
 plugins {
 	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
 	id 'maven-publish'
+	id 'checkstyle'
 }
 
 version = project.mod_version
@@ -40,6 +41,11 @@ dependencies {
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 	
+}
+
+checkstyle {
+	toolVersion = '10.21.4'
+	configFile = file("config/checkstyle/checkstyle.xml")
 }
 
 processResources {

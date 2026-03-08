@@ -9,10 +9,10 @@ import ru.nyansus.mc.registry.ModEntities;
 import ru.nyansus.mc.renderer.DairatzRenderer;
 
 public class DairatzClient implements ClientModInitializer {
-	@Override
-	public void onInitializeClient() {
-		EntityModelLayerRegistry.registerModelLayer(DairatzModel.LAYER_LOCATION, DairatzModel::createBodyLayer);
-		EntityRendererRegistry.register(ModEntities.DAIRATZ_ENTITY, DairatzRenderer::new);
-		EntityRendererRegistry.register(ModEntities.FURBALL, ThrownItemRenderer::new);
-	}
+    @Override
+    public void onInitializeClient() {
+        EntityModelLayerRegistry.registerModelLayer(DairatzModel.LAYER_LOCATION, DairatzModel::createBodyLayer);
+        EntityRendererRegistry.register(ModEntities.DAIRATZ_ENTITY, DairatzRenderer::new);
+        EntityRendererRegistry.register(ModEntities.FURBALL, ThrownItemRenderer::new);
+    }
 }

@@ -5,7 +5,11 @@ import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
-import net.minecraft.client.model.geom.builders.*;
+import net.minecraft.client.model.geom.builders.CubeDeformation;
+import net.minecraft.client.model.geom.builders.CubeListBuilder;
+import net.minecraft.client.model.geom.builders.LayerDefinition;
+import net.minecraft.client.model.geom.builders.MeshDefinition;
+import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.resources.Identifier;
 import ru.nyansus.mc.Dairatz;
 import ru.nyansus.mc.animations.IdleAnimation;
@@ -55,7 +59,9 @@ public class DairatzModel extends EntityModel<DairatzRenderState> {
 
         body.addOrReplaceChild("rightCilia_r1",
                 CubeListBuilder.create()
-                        .texOffs(12, 0).mirror().addBox(-2.5F, -2.0F, 1.5F, 2.0F, 2.0F, 0.0F, CubeDeformation.NONE).mirror(false),
+                        .texOffs(12, 0).mirror()
+                        .addBox(-2.5F, -2.0F, 1.5F, 2.0F, 2.0F, 0.0F, CubeDeformation.NONE)
+                        .mirror(false),
                 PartPose.offsetAndRotation(-1.25F, -1.0F, -2.3F, 0.0F, -0.7854F, 0.0F));
 
         body.addOrReplaceChild("leftCilia_r1",
@@ -82,7 +88,9 @@ public class DairatzModel extends EntityModel<DairatzRenderState> {
 
         leftWing.addOrReplaceChild("leftWing_r1",
                 CubeListBuilder.create()
-                        .texOffs(16, 0).mirror().addBox(-1.0F, -6.825F, -1.0F, 8.0F, 8.0F, 0.0F, CubeDeformation.NONE).mirror(false),
+                        .texOffs(16, 0).mirror()
+                        .addBox(-1.0F, -6.825F, -1.0F, 8.0F, 8.0F, 0.0F, CubeDeformation.NONE)
+                        .mirror(false),
                 PartPose.offsetAndRotation(-0.425F, 2.5F, 1.25F, 0.0F, -0.7854F, 0.0F));
 
         PartDefinition paws = main.addOrReplaceChild("paws",
@@ -96,12 +104,16 @@ public class DairatzModel extends EntityModel<DairatzRenderState> {
 
         paws.addOrReplaceChild("hindRightPaw",
                 CubeListBuilder.create()
-                        .texOffs(8, 8).mirror().addBox(-2.0F, -2.0F, 1.0F, 2.0F, 3.0F, 0.0F, CubeDeformation.NONE).mirror(false),
+                        .texOffs(8, 8).mirror()
+                        .addBox(-2.0F, -2.0F, 1.0F, 2.0F, 3.0F, 0.0F, CubeDeformation.NONE)
+                        .mirror(false),
                 PartPose.offset(0.0F, 0.0F, 0.0F));
 
         paws.addOrReplaceChild("frontLeftPaw",
                 CubeListBuilder.create()
-                        .texOffs(4, 8).mirror().addBox(0.0F, -2.0F, -1.0F, 2.0F, 3.0F, 0.0F, CubeDeformation.NONE).mirror(false),
+                        .texOffs(4, 8).mirror()
+                        .addBox(0.0F, -2.0F, -1.0F, 2.0F, 3.0F, 0.0F, CubeDeformation.NONE)
+                        .mirror(false),
                 PartPose.offset(0.0F, 0.0F, 0.0F));
 
         paws.addOrReplaceChild("frontRightPaw",
