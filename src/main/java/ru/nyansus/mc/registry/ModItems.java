@@ -18,7 +18,13 @@ public class ModItems {
     );
 
     private static final ResourceKey<Item> SPAWN_EGG_KEY = ResourceKey.create(
-            Registries.ITEM, Identifier.fromNamespaceAndPath(Dairatz.MOD_ID, "dairatz_spawn_egg")
+            Registries.ITEM,
+            Identifier.fromNamespaceAndPath(Dairatz.MOD_ID, "dairatz_spawn_egg")
+    );
+
+    private static final ResourceKey<Item> WINTER_SPAWN_EGG_KEY = ResourceKey.create(
+            Registries.ITEM,
+            Identifier.fromNamespaceAndPath(Dairatz.MOD_ID, "winter_fairy_spawn_egg")
     );
 
     public static final Item FURBALL = Registry.register(
@@ -33,7 +39,18 @@ public class ModItems {
             new SpawnEggItem(new Item.Properties()
                     .setId(SPAWN_EGG_KEY)
                     .component(DataComponents.ENTITY_DATA,
-                            TypedEntityData.of(ModEntities.DAIRATZ_ENTITY, new CompoundTag())))
+                            TypedEntityData.of(
+                                    ModEntities.DAIRATZ_ENTITY, new CompoundTag())))
+    );
+
+    public static final Item WINTER_FAIRY_SPAWN_EGG = Registry.register(
+            BuiltInRegistries.ITEM,
+            WINTER_SPAWN_EGG_KEY,
+            new SpawnEggItem(new Item.Properties()
+                    .setId(WINTER_SPAWN_EGG_KEY)
+                    .component(DataComponents.ENTITY_DATA,
+                            TypedEntityData.of(
+                                    ModEntities.WINTER_FAIRY, new CompoundTag())))
     );
 
     public static void register() {

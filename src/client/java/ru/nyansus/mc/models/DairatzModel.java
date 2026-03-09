@@ -13,9 +13,9 @@ import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.resources.Identifier;
 import ru.nyansus.mc.Dairatz;
 import ru.nyansus.mc.animations.IdleAnimation;
-import ru.nyansus.mc.renderer.DairatzRenderState;
+import ru.nyansus.mc.renderer.FairyRenderState;
 
-public class DairatzModel extends EntityModel<DairatzRenderState> {
+public class DairatzModel extends EntityModel<FairyRenderState> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(
             Identifier.fromNamespaceAndPath(Dairatz.MOD_ID, "dairatz_entity"), "main"
     );
@@ -125,7 +125,7 @@ public class DairatzModel extends EntityModel<DairatzRenderState> {
     }
 
     @Override
-    public void setupAnim(DairatzRenderState state) {
+    public void setupAnim(FairyRenderState state) {
         super.setupAnim(state);
         idleAnimation.apply(state.idleAnimationState, state.ageInTicks);
     }
