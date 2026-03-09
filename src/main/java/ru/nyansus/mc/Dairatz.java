@@ -55,7 +55,9 @@ public class Dairatz implements ModInitializer {
                         Biomes.FLOWER_FOREST, Biomes.MEADOW, Biomes.SUNFLOWER_PLAINS),
                 MobCategory.CREATURE,
                 ModEntities.DAIRATZ_ENTITY,
-                10, 2, 4
+                DairatzConfig.dairatzSpawnWeight,
+                DairatzConfig.dairatzMinGroup,
+                DairatzConfig.dairatzMaxGroup
         );
         BiomeModifications.addSpawn(
                 BiomeSelectors.includeByKey(
@@ -65,7 +67,9 @@ public class Dairatz implements ModInitializer {
                         Biomes.ICE_SPIKES),
                 MobCategory.CREATURE,
                 ModEntities.WINTER_FAIRY,
-                8, 2, 3
+                DairatzConfig.winterSpawnWeight,
+                DairatzConfig.winterMinGroup,
+                DairatzConfig.winterMaxGroup
         );
 
         ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.SPAWN_EGGS)

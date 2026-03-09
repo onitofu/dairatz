@@ -1,11 +1,11 @@
 package ru.nyansus.mc.entity;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
@@ -14,6 +14,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import ru.nyansus.mc.config.DairatzConfig;
 
 public class WinterFairyEntity extends AbstractFairyEntity {
+    private static final int FREEZE_AROUND_INTERVAL = 20;
+    private static final int FREEZE_AROUND_Y_RANGE = 2;
+
     public WinterFairyEntity(EntityType<? extends TamableAnimal> entityType, Level level) {
         super(entityType, level);
     }
@@ -46,7 +49,7 @@ public class WinterFairyEntity extends AbstractFairyEntity {
         if (!level().isClientSide()) {
             if (isOnHead()) {
                 freezeWaterFrostWalker();
-            } else if (tickCount % 20 == 0) {
+            } else if (tickCount % FREEZE_AROUND_INTERVAL == 0) {
                 freezeWaterAround();
             }
         }
@@ -73,7 +76,7 @@ public class WinterFairyEntity extends AbstractFairyEntity {
         int radius = DairatzConfig.winterFreezeRadius;
         BlockPos center = blockPosition();
         for (int dx = -radius; dx <= radius; dx++) {
-            for (int dy = -2; dy <= 2; dy++) {
+            for (int dy = -FREEZE_AROUND_Y_RANGE; dy <= FREEZE_AROUND_Y_RANGE; dy++) {
                 for (int dz = -radius; dz <= radius; dz++) {
                     if (dx * dx + dz * dz > radius * radius) {
                         continue;
@@ -94,17 +97,7 @@ public class WinterFairyEntity extends AbstractFairyEntity {
     }
 
     @Override
-    public void performRangedAttack(LivingEntity target, float pullProgress) {
-        if (!(level() instanceof ServerLevel serverLevel)) {
-            return;
-        }
-        FrostballEntity frostball = new FrostballEntity(level(), this);
-        double dx = target.getX() - getX();
-        double dy = target.getEyeY() - getEyeY();
-        double dz = target.getZ() - getZ();
-        frostball.shoot(dx, dy, dz, 1.5f, 1.0f);
-        serverLevel.addFreshEntity(frostball);
-        playSound(net.minecraft.sounds.SoundEvents.SNOWBALL_THROW, 1.0f,
-                1.0f / (getRandom().nextFloat() * 0.4f + 0.8f));
+    protected ThrowableItemProjectile createProjectile() {
+        return new FrostballEntity(level(), this);
     }
 }

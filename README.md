@@ -47,6 +47,13 @@ GitHub Actions workflow (`.github/workflows/build.yml`) runs on every push/PR to
 
 On first launch, a config file is created at `config/dairatz.json`:
 
+### General
+
+| Parameter | Description | Default |
+|---|---|---|
+| `healAmount` | HP restored when feeding the tame item | 4.0 |
+| `tameChance` | Tame chance denominator (1 in N per attempt) | 3 |
+
 ### Fairy
 
 | Parameter | Description | Default |
@@ -55,6 +62,9 @@ On first launch, a config file is created at `config/dairatz.json`:
 | `furballDamage` | Furball projectile damage | 2.0 |
 | `fireRate` | Ticks between shots | 60 |
 | `flySpeed` | Flying speed | 0.4 |
+| `dairatzSpawnWeight` | Biome spawn weight | 10 |
+| `dairatzMinGroup` | Minimum group size | 2 |
+| `dairatzMaxGroup` | Maximum group size | 4 |
 
 ### Winter Fairy
 
@@ -66,7 +76,10 @@ On first launch, a config file is created at `config/dairatz.json`:
 | `winterFlySpeed` | Flying speed | 0.4 |
 | `winterSlownessDuration` | Slowness duration in ticks | 60 |
 | `winterSlownessLevel` | Slowness amplifier (1 = Slowness I) | 2 |
-| `winterFreezeRadius` | Water freeze radius in blocks | 4 |
+| `winterFreezeRadius` | Water freeze radius in blocks | 2 |
+| `winterSpawnWeight` | Biome spawn weight | 8 |
+| `winterMinGroup` | Minimum group size | 2 |
+| `winterMaxGroup` | Maximum group size | 3 |
 
 ## Wiki
 

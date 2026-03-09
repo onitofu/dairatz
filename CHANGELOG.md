@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.1 - Winter Update
+## 1.1
 
 - **Winter Fairy**: Added a new fairy variant that spawns in snowy biomes, tamed with sweet berries.
 - **Frostball projectile**: Winter Fairy shoots snowballs that deal damage and apply Slowness II.
@@ -11,6 +11,7 @@
 - **Hard teleport**: Fairies teleport directly to the owner when too far apart.
 - **No fairy-on-fairy aggression**: Fairies no longer target or attack other fairies.
 - **Owner protection fix**: Fairy projectiles no longer harm their owner.
+- **Extended configuration**: Added configurable spawn parameters (weight, group size), heal amount, tame chance, and all Winter Fairy parameters (health, damage, fire rate, flight speed, slowness, freeze radius).
 
 ## 1.0
 

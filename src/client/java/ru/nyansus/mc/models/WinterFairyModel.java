@@ -8,9 +8,9 @@ import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.resources.Identifier;
 import ru.nyansus.mc.Dairatz;
 import ru.nyansus.mc.animations.IdleAnimation;
-import ru.nyansus.mc.renderer.WinterFairyRenderState;
+import ru.nyansus.mc.renderer.FairyRenderState;
 
-public class WinterFairyModel extends EntityModel<WinterFairyRenderState> {
+public class WinterFairyModel extends EntityModel<FairyRenderState> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(
             Identifier.fromNamespaceAndPath(Dairatz.MOD_ID, "winter_fairy"), "main"
     );
@@ -29,7 +29,7 @@ public class WinterFairyModel extends EntityModel<WinterFairyRenderState> {
     }
 
     @Override
-    public void setupAnim(WinterFairyRenderState state) {
+    public void setupAnim(FairyRenderState state) {
         super.setupAnim(state);
         idleAnimation.apply(state.idleAnimationState, state.ageInTicks);
     }

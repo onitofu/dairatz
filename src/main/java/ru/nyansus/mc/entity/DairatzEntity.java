@@ -4,10 +4,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
@@ -41,21 +41,22 @@ public class DairatzEntity extends AbstractFairyEntity {
     }
 
     @Override
-    public void performRangedAttack(LivingEntity target, float pullProgress) {
-        if (!(level() instanceof ServerLevel serverLevel)) {
-            return;
-        }
-        FurballEntity furball = new FurballEntity(level(), this);
-        double dx = target.getX() - getX();
-        double dy = target.getEyeY() - getEyeY();
-        double dz = target.getZ() - getZ();
-        furball.shoot(dx, dy, dz, 1.5f, 1.0f);
-        serverLevel.addFreshEntity(furball);
-        playSound(net.minecraft.sounds.SoundEvents.SNOWBALL_THROW, 1.0f,
-                1.0f / (getRandom().nextFloat() * 0.4f + 0.8f));
+    protected ThrowableItemProjectile createProjectile() {
+        return new FurballEntity(level(), this);
     }
 
     private class PollinateGoal extends Goal {
+        private static final int POLLINATE_DURATION_TICKS = 60;
+        private static final int POLLINATE_COOLDOWN_TICKS = 200;
+        private static final double ARRIVAL_DISTANCE_SQ = 2.5;
+        private static final int FLOWER_SEARCH_ATTEMPTS = 10;
+        private static final int FLOWER_SEARCH_RANGE_XZ = 8;
+        private static final int FLOWER_SEARCH_RANGE_Y = 3;
+        private static final int GROW_RANGE_XZ = 3;
+        private static final int GROW_RANGE_Y = 2;
+        private static final double BLOCK_CENTER_OFFSET = 0.5;
+        private static final double HOVER_HEIGHT = 1.0;
+
         private BlockPos targetFlower;
         private int pollinatingTicks;
         private int cooldown;
@@ -84,21 +85,21 @@ public class DairatzEntity extends AbstractFairyEntity {
                 return;
             }
             getNavigation().moveTo(
-                    targetFlower.getX() + 0.5,
-                    targetFlower.getY() + 1.0,
-                    targetFlower.getZ() + 0.5,
+                    targetFlower.getX() + BLOCK_CENTER_OFFSET,
+                    targetFlower.getY() + HOVER_HEIGHT,
+                    targetFlower.getZ() + BLOCK_CENTER_OFFSET,
                     1.0
             );
             double dist = distanceToSqr(
-                    targetFlower.getX() + 0.5,
-                    targetFlower.getY() + 1.0,
-                    targetFlower.getZ() + 0.5
+                    targetFlower.getX() + BLOCK_CENTER_OFFSET,
+                    targetFlower.getY() + HOVER_HEIGHT,
+                    targetFlower.getZ() + BLOCK_CENTER_OFFSET
             );
-            if (dist < 2.5) {
+            if (dist < ARRIVAL_DISTANCE_SQ) {
                 pollinatingTicks++;
-                if (pollinatingTicks >= 60) {
+                if (pollinatingTicks >= POLLINATE_DURATION_TICKS) {
                     growNearby();
-                    cooldown = 200;
+                    cooldown = POLLINATE_COOLDOWN_TICKS;
                     stop();
                 }
             }
@@ -106,16 +107,20 @@ public class DairatzEntity extends AbstractFairyEntity {
 
         @Override
         public boolean canContinueToUse() {
-            return targetFlower != null && pollinatingTicks < 60 && !isTame();
+            return targetFlower != null
+                    && pollinatingTicks < POLLINATE_DURATION_TICKS && !isTame();
         }
 
         private BlockPos findFlower() {
             BlockPos fairyPos = blockPosition();
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < FLOWER_SEARCH_ATTEMPTS; i++) {
                 BlockPos pos = fairyPos.offset(
-                        random.nextIntBetweenInclusive(-8, 8),
-                        random.nextIntBetweenInclusive(-3, 3),
-                        random.nextIntBetweenInclusive(-8, 8)
+                        random.nextIntBetweenInclusive(
+                                -FLOWER_SEARCH_RANGE_XZ, FLOWER_SEARCH_RANGE_XZ),
+                        random.nextIntBetweenInclusive(
+                                -FLOWER_SEARCH_RANGE_Y, FLOWER_SEARCH_RANGE_Y),
+                        random.nextIntBetweenInclusive(
+                                -FLOWER_SEARCH_RANGE_XZ, FLOWER_SEARCH_RANGE_XZ)
                 );
                 if (level().getBlockState(pos).is(BlockTags.FLOWERS)) {
                     return pos;
@@ -130,9 +135,9 @@ public class DairatzEntity extends AbstractFairyEntity {
                 return;
             }
             BlockPos center = blockPosition();
-            for (int dx = -3; dx <= 3; dx++) {
-                for (int dy = -2; dy <= 2; dy++) {
-                    for (int dz = -3; dz <= 3; dz++) {
+            for (int dx = -GROW_RANGE_XZ; dx <= GROW_RANGE_XZ; dx++) {
+                for (int dy = -GROW_RANGE_Y; dy <= GROW_RANGE_Y; dy++) {
+                    for (int dz = -GROW_RANGE_XZ; dz <= GROW_RANGE_XZ; dz++) {
                         BlockPos pos = center.offset(dx, dy, dz);
                         BlockState state = world.getBlockState(pos);
                         if (state.getBlock() instanceof BonemealableBlock growable) {
