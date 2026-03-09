@@ -1,6 +1,6 @@
 # Dairatz
 
-A Minecraft Fabric mod that adds a tameable flying fairy companion.
+A Minecraft Fabric mod that adds tameable flying fairy companions.
 
 ## Requirements
 
@@ -47,21 +47,30 @@ GitHub Actions workflow (`.github/workflows/build.yml`) runs on every push/PR to
 
 On first launch, a config file is created at `config/dairatz.json`:
 
-```json
-{
-  "fairyHealth": 16.0,
-  "furballDamage": 2.0,
-  "fireRate": 40,
-  "flySpeed": 0.4
-}
-```
+### Fairy
 
 | Parameter | Description | Default |
 |---|---|---|
 | `fairyHealth` | Fairy max HP | 16.0 |
 | `furballDamage` | Furball projectile damage | 2.0 |
-| `fireRate` | Ticks between shots | 40 |
-| `flySpeed` | Fairy flying speed | 0.4 |
+| `fireRate` | Ticks between shots | 60 |
+| `flySpeed` | Flying speed | 0.4 |
+
+### Winter Fairy
+
+| Parameter | Description | Default |
+|---|---|---|
+| `winterFairyHealth` | Winter Fairy max HP | 16.0 |
+| `winterSnowballDamage` | Frostball projectile damage | 1.0 |
+| `winterFireRate` | Ticks between shots | 60 |
+| `winterFlySpeed` | Flying speed | 0.4 |
+| `winterSlownessDuration` | Slowness duration in ticks | 60 |
+| `winterSlownessLevel` | Slowness amplifier (1 = Slowness I) | 2 |
+| `winterFreezeRadius` | Water freeze radius in blocks | 4 |
+
+## Wiki
+
+See the [Wiki](wiki/home.md) for gameplay documentation.
 
 ## License
 

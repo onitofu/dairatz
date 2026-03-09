@@ -15,12 +15,12 @@ public class DairatzConfig {
 
     public static double fairyHealth = 16.0;
     public static double furballDamage = 2.0;
-    public static int fireRate = 40;
+    public static int fireRate = 60;
     public static double flySpeed = 0.4;
 
     public static double winterFairyHealth = 16.0;
     public static double winterSnowballDamage = 1.0;
-    public static int winterFireRate = 40;
+    public static int winterFireRate = 60;
     public static double winterFlySpeed = 0.4;
     public static int winterSlownessDuration = 60;
     public static int winterSlownessLevel = 2;
@@ -29,12 +29,12 @@ public class DairatzConfig {
     private static class Data {
         double fairyHealth = 16.0;
         double furballDamage = 2.0;
-        int fireRate = 40;
+        int fireRate = 60;
         double flySpeed = 0.4;
 
         double winterFairyHealth = 16.0;
         double winterSnowballDamage = 1.0;
-        int winterFireRate = 40;
+        int winterFireRate = 60;
         double winterFlySpeed = 0.4;
         int winterSlownessDuration = 60;
         int winterSlownessLevel = 2;
