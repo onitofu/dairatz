@@ -18,11 +18,27 @@ public class DairatzConfig {
     public static int fireRate = 40;
     public static double flySpeed = 0.4;
 
+    public static double winterFairyHealth = 16.0;
+    public static double winterSnowballDamage = 1.0;
+    public static int winterFireRate = 40;
+    public static double winterFlySpeed = 0.4;
+    public static int winterSlownessDuration = 60;
+    public static int winterSlownessLevel = 2;
+    public static int winterFreezeRadius = 4;
+
     private static class Data {
         double fairyHealth = 16.0;
         double furballDamage = 2.0;
         int fireRate = 40;
         double flySpeed = 0.4;
+
+        double winterFairyHealth = 16.0;
+        double winterSnowballDamage = 1.0;
+        int winterFireRate = 40;
+        double winterFlySpeed = 0.4;
+        int winterSlownessDuration = 60;
+        int winterSlownessLevel = 2;
+        int winterFreezeRadius = 2;
     }
 
     public static void load() {
@@ -35,6 +51,14 @@ public class DairatzConfig {
                     furballDamage = data.furballDamage;
                     fireRate = data.fireRate;
                     flySpeed = data.flySpeed;
+
+                    winterFairyHealth = data.winterFairyHealth;
+                    winterSnowballDamage = data.winterSnowballDamage;
+                    winterFireRate = data.winterFireRate;
+                    winterFlySpeed = data.winterFlySpeed;
+                    winterSlownessDuration = data.winterSlownessDuration;
+                    winterSlownessLevel = data.winterSlownessLevel;
+                    winterFreezeRadius = data.winterFreezeRadius;
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -52,6 +76,15 @@ public class DairatzConfig {
             data.furballDamage = furballDamage;
             data.fireRate = fireRate;
             data.flySpeed = flySpeed;
+
+            data.winterFairyHealth = winterFairyHealth;
+            data.winterSnowballDamage = winterSnowballDamage;
+            data.winterFireRate = winterFireRate;
+            data.winterFlySpeed = winterFlySpeed;
+            data.winterSlownessDuration = winterSlownessDuration;
+            data.winterSlownessLevel = winterSlownessLevel;
+            data.winterFreezeRadius = winterFreezeRadius;
+
             Files.createDirectories(CONFIG_PATH.getParent());
             Files.writeString(CONFIG_PATH, GSON.toJson(data));
         } catch (IOException e) {
