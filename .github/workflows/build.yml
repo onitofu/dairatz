@@ -1,4 +1,4 @@
-name: Build and publish artifacts
+name: Build
 
 on:
   push:
@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   quality:
-    name: Common architecture and style
+    name: Core
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -40,16 +40,19 @@ jobs:
           -Ptarget=1.21.11-fabric
 
   build:
-    name: Build ${{ matrix.target }}
+    name: ${{ matrix.name }}
     needs: quality
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        target:
-          - 1.21.11-fabric
-          - 1.21.11-forge
-          - 1.21.11-neoforge
+        include:
+          - name: Fabric 1.21.11
+            target: 1.21.11-fabric
+          - name: Forge 1.21.11
+            target: 1.21.11-forge
+          - name: NeoForge 1.21.11
+            target: 1.21.11-neoforge
 
     steps:
       - name: Checkout repository
@@ -69,7 +72,7 @@ jobs:
 
       - name: Create SHA-256 checksum
         working-directory: build/ci/${{ matrix.target }}
-        run: sha256sum *.jar > SHA256SUMS
+        run: sha256sum *.jar > SHA256SUMS-${{ matrix.target }}
 
       - name: Upload loader artifact
         uses: actions/upload-artifact@v4
@@ -80,21 +83,67 @@ jobs:
           retention-days: 30
 
   release:
-    name: Attach artifacts to GitHub Release
+    name: Release
     if: startsWith(github.ref, 'refs/tags/v')
     needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Download built artifacts
         uses: actions/download-artifact@v4
         with:
           pattern: dairatz-*
           path: release-artifacts
 
+      - name: Create combined SHA-256 checksum
+        shell: bash
+        run: |
+          mapfile -d '' jars < <(find release-artifacts -type f -name '*.jar' -print0 | sort -z)
+          if (( ${#jars[@]} == 0 )); then
+            echo 'No JAR files found in downloaded artifacts' >&2
+            exit 1
+          fi
+
+          : > release-artifacts/SHA256SUMS
+          for jar in "${jars[@]}"; do
+            checksum="$(sha256sum "$jar" | cut -d ' ' -f1)"
+            printf '%s  %s\n' "$checksum" "$(basename "$jar")" >> release-artifacts/SHA256SUMS
+          done
+
+      - name: Extract release notes from changelog
+        shell: bash
+        env:
+          RELEASE_VERSION: ${{ github.ref_name }}
+        run: |
+          version="${RELEASE_VERSION#v}"
+          awk -v version="$version" '
+            BEGIN { heading = "## " version }
+            index($0, heading) == 1 {
+              suffix = substr($0, length(heading) + 1)
+              if (suffix == "" || suffix ~ /^ \(/) {
+                found = 1
+                next
+              }
+            }
+            found && /^## / { exit }
+            found { print }
+            END { if (!found) exit 1 }
+          ' CHANGELOG.md > RELEASE_NOTES.md
+
+          if [[ ! -s RELEASE_NOTES.md ]]; then
+            echo "No release notes found for version $version" >&2
+            exit 1
+          fi
+
       - name: Publish GitHub Release assets
         uses: softprops/action-gh-release@v2
         with:
-          generate_release_notes: true
-          files: release-artifacts/**/*
+          body_path: RELEASE_NOTES.md
+          fail_on_unmatched_files: true
+          files: |
+            release-artifacts/**/*.jar
+            release-artifacts/SHA256SUMS
