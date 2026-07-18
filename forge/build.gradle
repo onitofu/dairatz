@@ -27,9 +27,21 @@ sourceSets {
     }
 }
 
+sourceSets.main.output.setResourcesDir(sourceSets.main.java.classesDirectory)
+
 minecraft {
     mappings channel: 'official', version: minecraft_version
     accessTransformers = files('src/main/resources/META-INF/accesstransformer.cfg')
+
+    runs {
+        register('client') {
+            workingDir = layout.projectDirectory.dir('run/client')
+        }
+        register('server') {
+            workingDir = layout.projectDirectory.dir('run/server')
+            args '--nogui'
+        }
+    }
 }
 
 repositories {

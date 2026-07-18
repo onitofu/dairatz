@@ -30,6 +30,17 @@ sourceSets {
 neoForge {
     version = neoforge_version
     accessTransformers.from file('src/main/resources/META-INF/accesstransformer.cfg')
+    runs {
+        client {
+            client()
+            gameDirectory = file('run/client')
+        }
+        server {
+            server()
+            gameDirectory = file('run/server')
+            programArgument '--nogui'
+        }
+    }
     mods {
         dairatz {
             sourceSet(sourceSets.main)

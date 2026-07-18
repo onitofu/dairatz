@@ -13,6 +13,7 @@
 - [x] `1.1.1-alpha.1`: common/Fabric и базовая переработка CI.
 - [x] `1.1.1-alpha.2`: Forge 1.21.11.
 - [x] `1.1.1-beta.1`: NeoForge 1.21.11.
+- [x] Dedicated server smoke-test на Fabric, Forge и NeoForge 1.21.11.
 - [ ] `1.1.1-rc.1`: регрессионная проверка трех loader.
 - [ ] `1.1.1`: публикация трех CI-артефактов без нового контента.
 
@@ -273,7 +274,8 @@ version scope `1.1.3`, чтобы новый контент сразу созд�
 - [x] Удалить неиспользуемые `ExampleMixin` и `ExampleClientMixin`, если они действительно пустые.
 - [x] Исправить placeholder metadata в `fabric.mod.json`.
 - [ ] Добавить минимальные automated tests для конфигурации и общих вычислений.
-- [ ] Проверить запуск клиента и dedicated server на Fabric 1.21.11.
+- [ ] Проверить запуск клиента на Fabric 1.21.11.
+- [x] Проверить запуск dedicated server на Fabric 1.21.11.
 
 Критерий готовности: поведение версии `1.1.0` воспроизводится без регрессий.
 
@@ -298,7 +300,8 @@ production JAR отдельно от `sources` и development JAR.
 - [x] Реализовать Forge adapter и Forge metadata.
 - [x] Добавить Forge-регистрацию сущностей, предметов, атрибутов, спавнов и client renderer.
 - [x] Преобразовать необходимую часть access widener в Forge access transformer либо удалить необходимость доступа.
-- [ ] Проверить client, integrated server и dedicated server.
+- [ ] Проверить client и integrated server.
+- [x] Проверить dedicated server.
 - [x] Добавить CI matrix row `build-1.21.11-forge`.
 - [x] Сохранять artifact `dairatz-1.21.11-forge`.
 
@@ -310,7 +313,8 @@ production JAR отдельно от `sources` и development JAR.
 - [x] Реализовать NeoForge adapter и `neoforge.mods.toml`.
 - [x] Добавить NeoForge-регистрацию сущностей, предметов, атрибутов, спавнов и client renderer.
 - [x] Настроить NeoForge access transformer или удалить необходимость доступа.
-- [ ] Проверить client, integrated server и dedicated server.
+- [ ] Проверить client и integrated server.
+- [x] Проверить dedicated server.
 - [x] Добавить CI matrix row `build-1.21.11-neoforge`.
 - [x] Сохранять artifact `dairatz-1.21.11-neoforge`.
 
@@ -322,7 +326,8 @@ registry ID, конфигурацией и игровым поведением.
 - [x] Запретить добавление новых мобов, предметов, рецептов и balance changes до релиза.
 - [ ] Провести регрессионную проверку существующих Dairatz и Winter Fairy.
 - [ ] Проверить загрузку мира, созданного на Fabric `1.1.0`.
-- [ ] Проверить отдельный клиент и dedicated server на трёх loader.
+- [ ] Проверить отдельный клиент на трёх loader.
+- [x] Проверить dedicated server на трёх loader.
 - [x] Добавить tag-triggered job `release`, который собирает artifacts в GitHub Release.
 - [ ] Опубликовать три JAR для Minecraft 1.21.11.
 
@@ -496,7 +501,8 @@ fix/forge-spawn-registration
 - [x] Существующие registry ID, NBT и конфигурация сохранены; совместимость мира ожидает runtime-теста.
 - [x] Собраны отдельные Fabric, Forge и NeoForge JAR для Minecraft 1.21.11.
 - [x] Каждый JAR имеет правильное loader-specific metadata.
-- [ ] Клиент и dedicated server запускаются на каждом loader.
+- [ ] Клиент запускается на каждом loader.
+- [x] Dedicated server запускается на каждом loader.
 - [x] CI настроен сохранять три уникальных artifact с JAR и checksum.
 - [x] Tag workflow настроен публиковать все три JAR в GitHub Release.
 
