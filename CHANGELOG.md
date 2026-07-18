@@ -2,10 +2,12 @@
 
 ## 1.1.1 (unreleased)
 
-- Added separate Fabric, Forge, and NeoForge builds for Minecraft 1.21.11.
-- Split shared gameplay code from loader-specific registration and lifecycle adapters.
-- Added loader-isolated CI jobs, SHA-256 checksums, and GitHub Release artifact publishing.
-- Preserved the content, registry IDs, configuration, and gameplay balance of 1.1.0.
+- Added Fabric, Forge, and NeoForge support for Minecraft 1.21.11.
+- Updated the spawn egg textures and mod logo.
+- Added a unique texture and creative inventory item for the Ice Furball.
+- Ice Furballs deal extra damage to fire-based mobs.
+- Fairies now chase enemies, circle them during combat, and try to dodge attacks.
+- Added Japanese, Simplified Chinese, Ukrainian, and Kazakh translations.
 
 ## 1.1
 
