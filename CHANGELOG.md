@@ -8,6 +8,7 @@
 - Ice Furballs deal extra damage to fire-based mobs.
 - Fairies now chase enemies, circle them during combat, and try to dodge attacks.
 - Added Japanese, Simplified Chinese, Ukrainian, and Kazakh translations.
+- Fixed an incorrect experimental features warning when creating worlds on Forge.
 
 ## 1.1
 
