@@ -5,7 +5,8 @@
 	"name": "Dairatz",
 	"description": "Adds tameable flying fairy companions.",
 	"authors": [
-		"Nyansus"
+		"Nyansus",
+		"DaRaer"
 	],
 	"contact": {
 		"sources": "https://github.com/onitofu/dairatz"
