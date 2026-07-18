@@ -43,6 +43,11 @@ GitHub Actions workflow (`.github/workflows/build.yml`) runs on every push/PR to
 2. Full Gradle build
 3. JAR artifact upload
 
+### Multi-loader roadmap
+
+See the [multi-loader and release plan](docs/MULTILOADER_RELEASE_PLAN.md) for the
+Fabric, Forge, NeoForge, and Minecraft version support matrix.
+
 ## Configuration
 
 On first launch, a config file is created at `config/dairatz.json`:
