@@ -113,7 +113,7 @@ public final class FairyRangedCombatGoal extends Goal {
         if (maneuverCooldown > 0) {
             maneuverCooldown--;
         }
-        if (tookDamage || maneuverCooldown <= 0 || fairy.getNavigation().isDone()) {
+        if (tookDamage || maneuverCooldown <= 0) {
             updateMovement(distanceSqr, canSeeTarget, tookDamage);
         }
     }
