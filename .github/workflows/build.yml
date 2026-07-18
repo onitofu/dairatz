@@ -1,14 +1,54 @@
-name: Build & Check
+name: Build and publish artifacts
 
 on:
   push:
-    branches: [ main, master ]
+    branches:
+      - main
+      - 'release/**'
+    tags:
+      - 'v*'
   pull_request:
-    branches: [ main, master ]
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
-  build:
+  quality:
+    name: Common architecture and style
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Check common isolation and code style
+        run: >-
+          ./gradlew verifyCommonIsolation
+          :fabric:checkstyleMain :fabric:checkstyleClient
+          -Ptarget=1.21.11-fabric
+
+  build:
+    name: Build ${{ matrix.target }}
+    needs: quality
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - 1.21.11-fabric
+          - 1.21.11-forge
+          - 1.21.11-neoforge
 
     steps:
       - name: Checkout repository
@@ -18,20 +58,42 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '21'
-          distribution: 'temurin'
+          distribution: temurin
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Run Checkstyle
-        run: ./gradlew checkstyleMain checkstyleClient
+      - name: Build selected target
+        run: ./gradlew buildTarget -Ptarget=${{ matrix.target }}
 
-      - name: Build mod
-        run: ./gradlew build
+      - name: Create SHA-256 checksum
+        working-directory: build/ci/${{ matrix.target }}
+        run: sha256sum *.jar > SHA256SUMS
 
-      - name: Upload JAR artifact
+      - name: Upload loader artifact
         uses: actions/upload-artifact@v4
         with:
-          name: dairatz-mod
-          path: build/libs/dairatz-*.jar
+          name: dairatz-${{ matrix.target }}-${{ github.sha }}
+          path: build/ci/${{ matrix.target }}/
           if-no-files-found: error
+          retention-days: 30
+
+  release:
+    name: Attach artifacts to GitHub Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download built artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: dairatz-*
+          path: release-artifacts
+
+      - name: Publish GitHub Release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: release-artifacts/**/*
