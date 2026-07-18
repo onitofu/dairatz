@@ -98,6 +98,6 @@ public class WinterFairyEntity extends AbstractFairyEntity {
 
     @Override
     protected ThrowableItemProjectile createProjectile() {
-        return new FrostballEntity(level(), this);
+        return new IceFurballEntity(level(), this);
     }
 }

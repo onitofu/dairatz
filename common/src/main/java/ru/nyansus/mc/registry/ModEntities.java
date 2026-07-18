@@ -3,15 +3,16 @@ package ru.nyansus.mc.registry;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import ru.nyansus.mc.entity.DairatzEntity;
-import ru.nyansus.mc.entity.FrostballEntity;
 import ru.nyansus.mc.entity.FurballEntity;
+import ru.nyansus.mc.entity.IceFurballEntity;
 import ru.nyansus.mc.entity.WinterFairyEntity;
 
 public final class ModEntities {
     public static final String DAIRATZ_NAME = "dairatz_entity";
     public static final String FURBALL_NAME = "furball";
     public static final String WINTER_FAIRY_NAME = "winter_fairy";
-    public static final String FROSTBALL_NAME = "frostball";
+    // Preserve the 1.1.0 registry ID while using the clearer Ice Furball name in code.
+    public static final String ICE_FURBALL_NAME = "frostball";
 
     private static final float FAIRY_HITBOX_WIDTH = 0.5f;
     private static final float FAIRY_HITBOX_HEIGHT = 0.5f;
@@ -25,7 +26,7 @@ public final class ModEntities {
     private static RegistryEntry<EntityType<DairatzEntity>> dairatzEntity;
     private static RegistryEntry<EntityType<FurballEntity>> furball;
     private static RegistryEntry<EntityType<WinterFairyEntity>> winterFairy;
-    private static RegistryEntry<EntityType<FrostballEntity>> frostball;
+    private static RegistryEntry<EntityType<IceFurballEntity>> iceFurball;
 
     private ModEntities() {
     }
@@ -59,10 +60,10 @@ public final class ModEntities {
                         .build(key)
         );
 
-        frostball = registrar.registerEntityType(
-                FROSTBALL_NAME,
-                key -> EntityType.Builder.<FrostballEntity>of(
-                                FrostballEntity::new, MobCategory.MISC)
+        iceFurball = registrar.registerEntityType(
+                ICE_FURBALL_NAME,
+                key -> EntityType.Builder.<IceFurballEntity>of(
+                                IceFurballEntity::new, MobCategory.MISC)
                         .sized(PROJECTILE_HITBOX_WIDTH, PROJECTILE_HITBOX_HEIGHT)
                         .clientTrackingRange(PROJECTILE_TRACKING_RANGE)
                         .updateInterval(PROJECTILE_UPDATE_INTERVAL)
@@ -88,8 +89,8 @@ public final class ModEntities {
         return requireRegistered(winterFairy, WINTER_FAIRY_NAME);
     }
 
-    public static RegistryEntry<EntityType<FrostballEntity>> frostball() {
-        return requireRegistered(frostball, FROSTBALL_NAME);
+    public static RegistryEntry<EntityType<IceFurballEntity>> iceFurball() {
+        return requireRegistered(iceFurball, ICE_FURBALL_NAME);
     }
 
     private static <T> RegistryEntry<T> requireRegistered(

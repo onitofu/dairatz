@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "minecraft:item/polar_bear_spawn_egg"
+    "layer0": "dairatz:item/winter_fairy_spawn_egg"
   }
 }

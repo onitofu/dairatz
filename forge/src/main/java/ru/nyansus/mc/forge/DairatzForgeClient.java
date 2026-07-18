@@ -31,6 +31,7 @@ final class DairatzForgeClient {
         event.registerEntityRenderer(
                 ModEntities.winterFairy().get(), WinterFairyRenderer::new);
         event.registerEntityRenderer(ModEntities.furball().get(), ThrownItemRenderer::new);
-        event.registerEntityRenderer(ModEntities.frostball().get(), ThrownItemRenderer::new);
+        event.registerEntityRenderer(
+                ModEntities.iceFurball().get(), ThrownItemRenderer::new);
     }
 }

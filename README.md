@@ -79,7 +79,7 @@ On first launch, a config file is created at `config/dairatz.json`:
 | Parameter | Description | Default |
 |---|---|---:|
 | `winterFairyHealth` | Winter Fairy max HP | 16.0 |
-| `winterSnowballDamage` | Frostball projectile damage | 1.0 |
+| `winterSnowballDamage` | Ice Furball base damage (3× against fire mobs) | 1.0 |
 | `winterFireRate` | Ticks between shots | 60 |
 | `winterFlySpeed` | Flying speed | 0.4 |
 | `winterSlownessDuration` | Slowness duration in ticks | 60 |

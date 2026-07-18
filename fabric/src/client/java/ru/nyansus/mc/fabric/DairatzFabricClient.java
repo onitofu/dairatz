@@ -22,6 +22,7 @@ public final class DairatzFabricClient implements ClientModInitializer {
         EntityRendererRegistry.register(
                 ModEntities.winterFairy().get(), WinterFairyRenderer::new);
         EntityRendererRegistry.register(ModEntities.furball().get(), ThrownItemRenderer::new);
-        EntityRendererRegistry.register(ModEntities.frostball().get(), ThrownItemRenderer::new);
+        EntityRendererRegistry.register(
+                ModEntities.iceFurball().get(), ThrownItemRenderer::new);
     }
 }
