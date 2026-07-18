@@ -78,6 +78,7 @@ public final class DairatzNeoForge {
             event.accept(ModItems.winterFairySpawnEgg().get());
         } else if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
             event.accept(ModItems.furball().get());
+            event.accept(ModItems.iceFurball().get());
         }
     }
 }

@@ -8,10 +8,12 @@ import net.minecraft.world.item.component.TypedEntityData;
 
 public final class ModItems {
     public static final String FURBALL_NAME = "furball";
+    public static final String ICE_FURBALL_NAME = "ice_furball";
     public static final String DAIRATZ_SPAWN_EGG_NAME = "dairatz_spawn_egg";
     public static final String WINTER_FAIRY_SPAWN_EGG_NAME = "winter_fairy_spawn_egg";
 
     private static RegistryEntry<Item> furball;
+    private static RegistryEntry<Item> iceFurball;
     private static RegistryEntry<Item> dairatzSpawnEgg;
     private static RegistryEntry<Item> winterFairySpawnEgg;
 
@@ -23,6 +25,11 @@ public final class ModItems {
 
         furball = registrar.registerItem(
                 FURBALL_NAME,
+                key -> new Item(new Item.Properties().setId(key))
+        );
+
+        iceFurball = registrar.registerItem(
+                ICE_FURBALL_NAME,
                 key -> new Item(new Item.Properties().setId(key))
         );
 
@@ -59,6 +66,10 @@ public final class ModItems {
 
     public static RegistryEntry<Item> furball() {
         return requireRegistered(furball, FURBALL_NAME);
+    }
+
+    public static RegistryEntry<Item> iceFurball() {
+        return requireRegistered(iceFurball, ICE_FURBALL_NAME);
     }
 
     public static RegistryEntry<Item> dairatzSpawnEgg() {

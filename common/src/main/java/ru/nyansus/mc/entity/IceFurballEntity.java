@@ -1,7 +1,5 @@
 package ru.nyansus.mc.entity;
 
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.resources.Identifier;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -11,16 +9,13 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
-import ru.nyansus.mc.Dairatz;
 import ru.nyansus.mc.config.DairatzConfig;
 import ru.nyansus.mc.registry.ModEntities;
+import ru.nyansus.mc.registry.ModItems;
 
 public class IceFurballEntity extends AbstractFairyProjectile {
     private static final float FIRE_MOB_DAMAGE_MULTIPLIER = 3.0f;
-    private static final Identifier ITEM_MODEL = Identifier.fromNamespaceAndPath(
-            Dairatz.MOD_ID, "ice_furball");
 
     public IceFurballEntity(
             EntityType<? extends ThrowableItemProjectile> type, Level level) {
@@ -32,19 +27,13 @@ public class IceFurballEntity extends AbstractFairyProjectile {
                 ModEntities.iceFurball().get(),
                 shooter,
                 level,
-                createItemStack()
+                new ItemStack(ModItems.iceFurball().get())
         );
     }
 
     @Override
     protected Item getDefaultItem() {
-        return Items.SNOWBALL;
-    }
-
-    private static ItemStack createItemStack() {
-        ItemStack stack = new ItemStack(Items.SNOWBALL);
-        stack.set(DataComponents.ITEM_MODEL, ITEM_MODEL);
-        return stack;
+        return ModItems.iceFurball().get();
     }
 
     @Override

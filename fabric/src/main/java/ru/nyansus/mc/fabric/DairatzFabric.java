@@ -90,6 +90,9 @@ public final class DairatzFabric implements ModInitializer {
                     entries.accept(new ItemStack(ModItems.winterFairySpawnEgg().get()));
                 });
         ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.INGREDIENTS)
-                .register(entries -> entries.accept(new ItemStack(ModItems.furball().get())));
+                .register(entries -> {
+                    entries.accept(new ItemStack(ModItems.furball().get()));
+                    entries.accept(new ItemStack(ModItems.iceFurball().get()));
+                });
     }
 }
