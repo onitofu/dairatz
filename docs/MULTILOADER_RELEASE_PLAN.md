@@ -10,9 +10,9 @@
 ## Текущий прогресс
 
 - [x] Создана релизная ветка `release/1.1.1`.
-- [ ] `1.1.1-alpha.1`: common/Fabric и базовая переработка CI.
-- [ ] `1.1.1-alpha.2`: Forge 1.21.11.
-- [ ] `1.1.1-beta.1`: NeoForge 1.21.11.
+- [x] `1.1.1-alpha.1`: common/Fabric и базовая переработка CI.
+- [x] `1.1.1-alpha.2`: Forge 1.21.11.
+- [x] `1.1.1-beta.1`: NeoForge 1.21.11.
 - [ ] `1.1.1-rc.1`: регрессионная проверка трех loader.
 - [ ] `1.1.1`: публикация трех CI-артефактов без нового контента.
 
@@ -50,8 +50,8 @@ NeoForge не считается средой автоматической со�
 Логические области исходников:
 
 ```text
-src/
-  common/
+common/
+  src/main/
     java/ru/nyansus/mc/
       entity/                 # сущности, AI и игровое поведение
       gameplay/               # общие механики
@@ -62,24 +62,26 @@ src/
       assets/dairatz/         # модели, текстуры и переводы
       data/dairatz/           # рецепты, loot tables, tags
 
-  fabric/
-    java/                     # Fabric entrypoint и FabricPlatform
+fabric/
+  src/main/
+    java/                     # Fabric entrypoint и adapter
     resources/fabric.mod.json
 
-  forge/
-    java/                     # Forge entrypoint и ForgePlatform
+forge/
+  src/main/
+    java/                     # Forge entrypoint и adapter
     resources/META-INF/mods.toml
 
-  neoforge/
-    java/                     # NeoForge entrypoint и NeoForgePlatform
+neoforge/
+  src/main/
+    java/                     # NeoForge entrypoint и adapter
     resources/META-INF/neoforge.mods.toml
 
-versions/
-  <minecraft>-<loader>/       # target-узлы Stonecutter
+build/ci/<minecraft>-<loader>/ # production JAR, подготовленный для CI
 ```
 
-Точная физическая структура Stonecutter может отличаться после прототипирования, но
-границы `common`, `fabric`, `forge`, `neoforge` должны сохраняться.
+Эта структура реализована для `1.1.1`. При подключении Stonecutter границы `common`,
+`fabric`, `forge`, `neoforge` должны сохраняться.
 
 ### 3.1. Что должно находиться в common
 
@@ -105,21 +107,17 @@ versions/
 - loader-specific events и lifecycle;
 - metadata, access widener или access transformer.
 
-Предлагаемый минимальный контракт:
+Реализованный минимальный контракт:
 
 ```java
-public interface DairatzPlatform {
-    Path configDirectory();
+public interface ContentRegistrar {
+    <T extends Entity> RegistryEntry<EntityType<T>> registerEntityType(
+            String name,
+            Function<ResourceKey<EntityType<?>>, EntityType<T>> factory);
 
-    void registerEntities();
-
-    void registerItems();
-
-    void registerMobAttributes();
-
-    void registerSpawns();
-
-    void registerCreativeTabs();
+    RegistryEntry<Item> registerItem(
+            String name,
+            Function<ResourceKey<Item>, Item> factory);
 }
 ```
 
@@ -263,17 +261,17 @@ version scope `1.1.3`, чтобы новый контент сразу созд�
 
 ### Этап 0. Зафиксировать контракт совместимости
 
-- [ ] Сохранить существующие registry ID и NBT-поля.
-- [ ] Описать поддерживаемые Minecraft/loader в README.
-- [ ] Решить, остаётся ли NeoForge обязательным target. В этом плане он считается обязательным.
+- [x] Сохранить существующие registry ID и NBT-поля.
+- [x] Описать поддерживаемые Minecraft/loader в README.
+- [x] Решить, остаётся ли NeoForge обязательным target. В этом плане он считается обязательным.
 - [ ] Зафиксировать список новых мобов, предметов и рецептов отдельной спецификацией.
 
 Критерий готовности: добавление loader не меняет существующие миры и игровой баланс.
 
 ### Этап 1. Очистить текущую Fabric-базу
 
-- [ ] Удалить неиспользуемые `ExampleMixin` и `ExampleClientMixin`, если они действительно пустые.
-- [ ] Исправить placeholder metadata в `fabric.mod.json`.
+- [x] Удалить неиспользуемые `ExampleMixin` и `ExampleClientMixin`, если они действительно пустые.
+- [x] Исправить placeholder metadata в `fabric.mod.json`.
 - [ ] Добавить минимальные automated tests для конфигурации и общих вычислений.
 - [ ] Проверить запуск клиента и dedicated server на Fabric 1.21.11.
 
@@ -281,11 +279,11 @@ version scope `1.1.3`, чтобы новый контент сразу созд�
 
 ### Этап 2. Выделить common и Fabric adapter
 
-- [ ] Перенести Fabric entrypoint в `fabric` source set.
-- [ ] Вынести получение config directory из общей конфигурации.
-- [ ] Вынести biome modifications, attributes, creative tabs и client registrations.
-- [ ] Оставить entity/gameplay code в common.
-- [ ] Запретить loader imports в common проверкой CI или ArchUnit-подобным тестом.
+- [x] Перенести Fabric entrypoint в `fabric` source set.
+- [x] Вынести получение config directory из общей конфигурации.
+- [x] Вынести biome modifications, attributes, creative tabs и client registrations.
+- [x] Оставить entity/gameplay code в common.
+- [x] Запретить loader imports в common проверкой CI или ArchUnit-подобным тестом.
 
 На этом этапе существующий CI разделяется на два логических job:
 
@@ -297,35 +295,35 @@ production JAR отдельно от `sources` и development JAR.
 
 ### Этап 3. Добавить Forge 1.21.11
 
-- [ ] Реализовать `ForgePlatform` и Forge metadata.
-- [ ] Добавить Forge-регистрацию сущностей, предметов, атрибутов, спавнов и client renderer.
-- [ ] Преобразовать необходимую часть access widener в Forge access transformer либо удалить необходимость доступа.
+- [x] Реализовать Forge adapter и Forge metadata.
+- [x] Добавить Forge-регистрацию сущностей, предметов, атрибутов, спавнов и client renderer.
+- [x] Преобразовать необходимую часть access widener в Forge access transformer либо удалить необходимость доступа.
 - [ ] Проверить client, integrated server и dedicated server.
-- [ ] Добавить CI job `build-1.21.11-forge`.
-- [ ] Сохранять artifact `dairatz-1.21.11-forge`.
+- [x] Добавить CI matrix row `build-1.21.11-forge`.
+- [x] Сохранять artifact `dairatz-1.21.11-forge`.
 
 Критерий готовности: `1.1.1-alpha.2` содержит Fabric и Forge JAR с одинаковым
 функционалом `1.1.0`.
 
 ### Этап 4. Добавить NeoForge 1.21.11
 
-- [ ] Реализовать `NeoForgePlatform` и `neoforge.mods.toml`.
-- [ ] Добавить NeoForge-регистрацию сущностей, предметов, атрибутов, спавнов и client renderer.
-- [ ] Настроить NeoForge access transformer или удалить необходимость доступа.
+- [x] Реализовать NeoForge adapter и `neoforge.mods.toml`.
+- [x] Добавить NeoForge-регистрацию сущностей, предметов, атрибутов, спавнов и client renderer.
+- [x] Настроить NeoForge access transformer или удалить необходимость доступа.
 - [ ] Проверить client, integrated server и dedicated server.
-- [ ] Добавить CI job `build-1.21.11-neoforge`.
-- [ ] Сохранять artifact `dairatz-1.21.11-neoforge`.
+- [x] Добавить CI matrix row `build-1.21.11-neoforge`.
+- [x] Сохранять artifact `dairatz-1.21.11-neoforge`.
 
 Критерий готовности: `1.1.1-beta.1` содержит три loader-specific JAR с одинаковыми
 registry ID, конфигурацией и игровым поведением.
 
 ### Этап 5. Выпустить стабильный `1.1.1`
 
-- [ ] Запретить добавление новых мобов, предметов, рецептов и balance changes до релиза.
+- [x] Запретить добавление новых мобов, предметов, рецептов и balance changes до релиза.
 - [ ] Провести регрессионную проверку существующих Dairatz и Winter Fairy.
 - [ ] Проверить загрузку мира, созданного на Fabric `1.1.0`.
 - [ ] Проверить отдельный клиент и dedicated server на трёх loader.
-- [ ] Добавить tag-triggered job `release`, который собирает artifacts в GitHub Release.
+- [x] Добавить tag-triggered job `release`, который собирает artifacts в GitHub Release.
 - [ ] Опубликовать три JAR для Minecraft 1.21.11.
 
 Критерий готовности: стабильный `1.1.1` переносит реализацию `1.1.0` на Fabric,
@@ -381,7 +379,8 @@ CI не создаёт jobs для ещё не реализованных target
 
 #### 8.1. Контракт Gradle для CI
 
-CI вызывает один стабильный интерфейс, скрывающий внутренние задачи Stonecutter:
+CI вызывает один стабильный интерфейс, скрывающий внутренние задачи loader toolchain
+(и в будущем Stonecutter):
 
 ```text
 ./gradlew buildTarget -Ptarget=<minecraft>-<loader>
@@ -492,14 +491,14 @@ fix/forge-spawn-registration
 
 ### 9.1. Стабильный `1.1.1`
 
-- [ ] Реализация `1.1.0` разделена на common и loader adapters.
-- [ ] Не добавлены новые мобы, предметы, рецепты или balance changes.
-- [ ] Существующие registry ID, NBT, конфигурация и миры совместимы.
-- [ ] Собраны отдельные Fabric, Forge и NeoForge JAR для Minecraft 1.21.11.
-- [ ] Каждый JAR имеет правильное loader-specific metadata.
+- [x] Реализация `1.1.0` разделена на common и loader adapters.
+- [x] Не добавлены новые мобы, предметы, рецепты или balance changes.
+- [x] Существующие registry ID, NBT и конфигурация сохранены; совместимость мира ожидает runtime-теста.
+- [x] Собраны отдельные Fabric, Forge и NeoForge JAR для Minecraft 1.21.11.
+- [x] Каждый JAR имеет правильное loader-specific metadata.
 - [ ] Клиент и dedicated server запускаются на каждом loader.
-- [ ] CI сохраняет три уникальных artifact с JAR и checksum.
-- [ ] Tag workflow публикует все три JAR в GitHub Release.
+- [x] CI настроен сохранять три уникальных artifact с JAR и checksum.
+- [x] Tag workflow настроен публиковать все три JAR в GitHub Release.
 
 ### 9.2. Стабильный `1.2.0`
 

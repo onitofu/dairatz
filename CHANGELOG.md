@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.1 (unreleased)
+
+- Added separate Fabric, Forge, and NeoForge builds for Minecraft 1.21.11.
+- Split shared gameplay code from loader-specific registration and lifecycle adapters.
+- Added loader-isolated CI jobs, SHA-256 checksums, and GitHub Release artifact publishing.
+- Preserved the content, registry IDs, configuration, and gameplay balance of 1.1.0.
+
 ## 1.1
 
 - **Winter Fairy**: Added a new fairy variant that spawns in snowy biomes, tamed with sweet berries.
