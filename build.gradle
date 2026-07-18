@@ -1,97 +1,77 @@
 plugins {
-	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
-	id 'maven-publish'
-	id 'checkstyle'
+    id 'base'
 }
 
-version = project.mod_version
 group = project.maven_group
+version = project.mod_version
 
-base {
-	archivesName = project.archives_base_name
+tasks.register('verifyCommonIsolation') {
+    group = 'verification'
+    description = 'Fails if loader-specific APIs leak into the common source set.'
+
+    def commonSources = fileTree('common') {
+        include '**/*.java'
+    }
+    inputs.files(commonSources)
+
+    doLast {
+        def forbiddenPackages = [
+                'net.fabricmc.',
+                'net.minecraftforge.',
+                'net.neoforged.'
+        ]
+        def violations = []
+        commonSources.each { source ->
+            def text = source.getText('UTF-8')
+            forbiddenPackages.each { forbidden ->
+                if (text.contains(forbidden)) {
+                    violations.add("${relativePath(source)} contains ${forbidden}")
+                }
+            }
+        }
+        if (!violations.isEmpty()) {
+            throw new GradleException(
+                    "Loader APIs found in common sources:\n${violations.join('\n')}")
+        }
+    }
 }
 
-repositories {
-	// Add repositories to retrieve artifacts from in here.
-	// You should only use this when depending on other mods because
-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
-	// for more information about repositories.
+def supportedTargets = [
+        '1.21.11-fabric'  : ':fabric',
+        '1.21.11-forge'   : ':forge',
+        '1.21.11-neoforge': ':neoforge'
+]
+
+tasks.register('buildTarget') {
+    group = 'build'
+    description = 'Builds and stages one loader target selected with -Ptarget=<minecraft>-<loader>.'
+
+    def target = providers.gradleProperty('target')
+    doFirst {
+        if (!target.isPresent() || !supportedTargets.containsKey(target.get())) {
+            throw new GradleException(
+                    "Unsupported or missing target. Use one of: ${supportedTargets.keySet().join(', ')}")
+        }
+    }
+
+    supportedTargets.each { targetName, projectPath ->
+        def targetProject = findProject(projectPath)
+        if (targetProject != null) {
+            dependsOn(provider {
+                target.isPresent() && target.get() == targetName
+                        ? targetProject.tasks.named('stageArtifact').get()
+                        : []
+            })
+        }
+    }
 }
 
-loom {
-	splitEnvironmentSourceSets()
-	accessWidenerPath = file("src/main/resources/dairatz.accesswidener")
-
-	mods {
-		"dairatz" {
-			sourceSet sourceSets.main
-			sourceSet sourceSets.client
-		}
-	}
-
+tasks.register('buildAll') {
+    group = 'build'
+    description = 'Builds and stages all supported loader targets.'
+    dependsOn subprojects.collect { it.tasks.named('stageArtifact') }
 }
 
-dependencies {
-	// To change the versions see the gradle.properties file
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings loom.officialMojangMappings()
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-
-	// Fabric API. This is technically optional, but you probably want it anyway.
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
-	
-}
-
-checkstyle {
-	toolVersion = '10.21.4'
-	configFile = file("config/checkstyle/checkstyle.xml")
-}
-
-processResources {
-	inputs.property "version", project.version
-
-	filesMatching("fabric.mod.json") {
-		expand "version": inputs.properties.version
-	}
-}
-
-tasks.withType(JavaCompile).configureEach {
-	it.options.release = 21
-}
-
-java {
-	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-	// if it is present.
-	// If you remove this line, sources will not be generated.
-	withSourcesJar()
-
-	sourceCompatibility = JavaVersion.VERSION_21
-	targetCompatibility = JavaVersion.VERSION_21
-}
-
-jar {
-	inputs.property "archivesName", project.base.archivesName
-
-	from("LICENSE") {
-		rename { "${it}_${inputs.properties.archivesName}"}
-	}
-}
-
-// configure the maven publication
-publishing {
-	publications {
-		create("mavenJava", MavenPublication) {
-			artifactId = project.archives_base_name
-			from components.java
-		}
-	}
-
-	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
-	repositories {
-		// Add repositories to publish to here.
-		// Notice: This block does NOT have the same function as the block in the top level.
-		// The repositories here will be used for publishing your artifact, not for
-		// retrieving dependencies.
-	}
+tasks.named('build') {
+    dependsOn tasks.named('buildAll')
 }
