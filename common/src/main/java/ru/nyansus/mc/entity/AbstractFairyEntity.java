@@ -25,7 +25,6 @@ import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.FollowOwnerGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
-import net.minecraft.world.entity.ai.goal.RangedAttackGoal;
 import net.minecraft.world.entity.ai.goal.TemptGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomFlyingGoal;
 import net.minecraft.world.entity.ai.goal.target.OwnerHurtByTargetGoal;
@@ -45,13 +44,14 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import ru.nyansus.mc.config.DairatzConfig;
+import ru.nyansus.mc.entity.ai.FairyRangedCombatGoal;
 
 public abstract class AbstractFairyEntity extends TamableAnimal implements RangedAttackMob {
 
     private static final int FLY_CONTROL_MAX_TURN = 20;
 
-    private static final double RANGED_ATTACK_SPEED = 1.0;
-    private static final float RANGED_ATTACK_RANGE = 16.0f;
+    private static final double RANGED_ATTACK_SPEED = 1.15;
+    private static final float RANGED_ATTACK_RANGE = 10.0f;
     private static final double TEMPT_SPEED = 1.2;
     private static final double FOLLOW_OWNER_SPEED = 1.0;
     private static final float FOLLOW_START_DISTANCE = 10.0f;
@@ -103,14 +103,8 @@ public abstract class AbstractFairyEntity extends TamableAnimal implements Range
     @Override
     protected void registerGoals() {
         goalSelector.addGoal(0, new FloatGoal(this));
-        RangedAttackGoal rangedGoal = new RangedAttackGoal(
-                this, RANGED_ATTACK_SPEED, getFireRate(), RANGED_ATTACK_RANGE) {
-            @Override
-            public boolean canUse() {
-                return !AbstractFairyEntity.this.isOnHead() && super.canUse();
-            }
-        };
-        goalSelector.addGoal(1, rangedGoal);
+        goalSelector.addGoal(1, new FairyRangedCombatGoal(
+                this, RANGED_ATTACK_SPEED, getFireRate(), RANGED_ATTACK_RANGE));
         goalSelector.addGoal(2, new TemptGoal(
                 this, TEMPT_SPEED, stack -> stack.is(getTameItem()), false));
         FollowOwnerGoal followGoal = new FollowOwnerGoal(
