@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "dairatz:item/dairatz_spawn_egg"
+  }
+}

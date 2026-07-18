@@ -1,0 +1,90 @@
+plugins {
+    id 'java-library'
+    id 'checkstyle'
+    id 'net.neoforged.moddev' version "${neoforge_moddev_version}"
+}
+
+version = rootProject.version
+group = rootProject.group
+
+base {
+    archivesName = archives_base_name
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+sourceSets {
+    main {
+        java.srcDirs = [
+                rootProject.file('common/src/main/java'),
+                rootProject.file('common/src/client/java'),
+                file('src/main/java')
+        ]
+        resources.srcDirs = [
+                rootProject.file('common/src/main/resources'),
+                file('src/main/resources')
+        ]
+    }
+}
+
+neoForge {
+    version = neoforge_version
+    accessTransformers.from file('src/main/resources/META-INF/accesstransformer.cfg')
+    runs {
+        client {
+            client()
+            gameDirectory = file('run/client')
+        }
+        server {
+            server()
+            gameDirectory = file('run/server')
+            programArgument '--nogui'
+        }
+    }
+    mods {
+        dairatz {
+            sourceSet(sourceSets.main)
+        }
+    }
+}
+
+processResources {
+    def replacements = [
+            minecraft_version: minecraft_version,
+            neoforge_version : neoforge_version,
+            mod_id           : mod_id,
+            mod_name         : mod_name,
+            mod_license      : mod_license,
+            mod_version      : mod_version,
+            mod_authors      : mod_authors,
+            mod_description  : mod_description
+    ]
+    inputs.properties replacements
+    filesMatching('META-INF/neoforge.mods.toml') {
+        expand replacements
+    }
+}
+
+checkstyle {
+    toolVersion = '10.21.4'
+    configFile = rootProject.file('config/checkstyle/checkstyle.xml')
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
+
+tasks.named('jar') {
+    archiveVersion = "${project.version}+mc${minecraft_version}-neoforge"
+    from(rootProject.file('LICENSE')) {
+        rename { "${it}_${mod_id}" }
+    }
+}
+
+tasks.register('stageArtifact', Sync) {
+    group = 'build'
+    dependsOn tasks.named('build')
+    from(tasks.named('jar').flatMap { it.archiveFile })
+    into(rootProject.layout.buildDirectory.dir('ci/1.21.11-neoforge'))
+}

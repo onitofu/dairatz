@@ -1,47 +1,55 @@
 # Dairatz
 
-A Minecraft Fabric mod that adds tameable flying fairy companions.
+A Minecraft mod that adds tameable flying fairy companions.
 
-## Requirements
+## Supported platforms
 
-- Minecraft **1.21.11**
-- Fabric Loader **0.18.4+**
-- Fabric API **0.141.3+1.21.11**
-- Java **21**
+Release `1.1.1` targets Minecraft `1.21.11` and Java `21`:
+
+| Loader | Minimum version | Artifact |
+|---|---:|---|
+| Fabric | Fabric Loader `0.18.4`, Fabric API `0.141.3+1.21.11` | `dairatz-1.1.1+mc1.21.11-fabric.jar` |
+| Forge | Forge `61.1.7` | `dairatz-1.1.1+mc1.21.11-forge.jar` |
+| NeoForge | NeoForge `21.11.42` | `dairatz-1.1.1+mc1.21.11-neoforge.jar` |
+
+Forge and NeoForge use separate JAR files. A Forge artifact is not treated as an
+automatically supported NeoForge artifact.
 
 ## Building
 
-```bash
-./gradlew build
-```
-
-The compiled JAR will be in `build/libs/dairatz-<version>.jar`.
-
-## Development
-
-### Running the client
+Build one target using the same interface as CI:
 
 ```bash
-./gradlew runClient
+./gradlew buildTarget -Ptarget=1.21.11-fabric
+./gradlew buildTarget -Ptarget=1.21.11-forge
+./gradlew buildTarget -Ptarget=1.21.11-neoforge
 ```
 
-### Code style
-
-The project uses [Checkstyle](https://checkstyle.org/) with an adapted Google Java Style configuration (4-space indent, 120 char line length, no Javadoc enforcement).
+The selected production JAR is staged in `build/ci/<target>/`. To build the complete
+implemented matrix, run:
 
 ```bash
-./gradlew checkstyleMain checkstyleClient
+./gradlew buildAll
 ```
 
-Checkstyle runs automatically as part of `./gradlew check` and the CI pipeline.
+## Development and code style
 
-### CI
+The shared gameplay code is under `common/`; loader APIs belong only in `fabric/`,
+`forge/`, or `neoforge/`. Checkstyle uses an adapted Google Java Style configuration.
 
-GitHub Actions workflow (`.github/workflows/build.yml`) runs on every push/PR to `main`/`master`:
+```bash
+./gradlew verifyCommonIsolation :fabric:checkstyleMain :fabric:checkstyleClient \
+  -Ptarget=1.21.11-fabric
+```
 
-1. Checkstyle validation
-2. Full Gradle build
-3. JAR artifact upload
+## CI artifacts
+
+The GitHub Actions workflow runs one matrix job per loader. Each job calls
+`buildTarget`, creates `SHA256SUMS`, and uploads a loader-specific artifact retained
+for 30 days. A `v*` tag attaches all JARs and checksums to a GitHub Release.
+
+See the [multi-loader and release plan](docs/MULTILOADER_RELEASE_PLAN.md) for the
+Minecraft version roadmap and release policy.
 
 ## Configuration
 
@@ -50,14 +58,14 @@ On first launch, a config file is created at `config/dairatz.json`:
 ### General
 
 | Parameter | Description | Default |
-|---|---|---|
+|---|---|---:|
 | `healAmount` | HP restored when feeding the tame item | 4.0 |
 | `tameChance` | Tame chance denominator (1 in N per attempt) | 3 |
 
 ### Fairy
 
 | Parameter | Description | Default |
-|---|---|---|
+|---|---|---:|
 | `fairyHealth` | Fairy max HP | 16.0 |
 | `furballDamage` | Furball projectile damage | 2.0 |
 | `fireRate` | Ticks between shots | 60 |
@@ -69,9 +77,9 @@ On first launch, a config file is created at `config/dairatz.json`:
 ### Winter Fairy
 
 | Parameter | Description | Default |
-|---|---|---|
+|---|---|---:|
 | `winterFairyHealth` | Winter Fairy max HP | 16.0 |
-| `winterSnowballDamage` | Frostball projectile damage | 1.0 |
+| `winterSnowballDamage` | Ice Furball base damage (3× against fire mobs) | 1.0 |
 | `winterFireRate` | Ticks between shots | 60 |
 | `winterFlySpeed` | Flying speed | 0.4 |
 | `winterSlownessDuration` | Slowness duration in ticks | 60 |
@@ -80,10 +88,6 @@ On first launch, a config file is created at `config/dairatz.json`:
 | `winterSpawnWeight` | Biome spawn weight | 8 |
 | `winterMinGroup` | Minimum group size | 2 |
 | `winterMaxGroup` | Maximum group size | 3 |
-
-## Wiki
-
-See the [Wiki](wiki/home.md) for gameplay documentation.
 
 ## License
 

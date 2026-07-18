@@ -1,0 +1,32 @@
+{
+	"schemaVersion": 1,
+	"id": "dairatz",
+	"version": "${version}",
+	"name": "Dairatz",
+	"description": "Adds tameable flying fairy companions.",
+	"authors": [
+		"Nyansus",
+		"DaRaer"
+	],
+	"contact": {
+		"sources": "https://github.com/onitofu/dairatz"
+	},
+	"license": "MIT",
+	"icon": "assets/dairatz/icon.png",
+	"accessWidener": "dairatz.accesswidener",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"ru.nyansus.mc.fabric.DairatzFabric"
+		],
+		"client": [
+			"ru.nyansus.mc.fabric.DairatzFabricClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.18.4",
+		"minecraft": "~1.21.11",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}

@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.1 (unreleased)
+
+- Added Fabric, Forge, and NeoForge support for Minecraft 1.21.11.
+- Updated the spawn egg textures and mod logo.
+- Added a unique texture and creative inventory item for the Ice Furball.
+- Ice Furballs deal extra damage to fire-based mobs.
+- Fairies now chase enemies, circle them during combat, and try to dodge attacks.
+- Added Japanese, Simplified Chinese, Ukrainian, and Kazakh translations.
+- Fixed an incorrect experimental features warning when creating worlds on Forge.
+
 ## 1.1
 
 - **Winter Fairy**: Added a new fairy variant that spawns in snowy biomes, tamed with sweet berries.
