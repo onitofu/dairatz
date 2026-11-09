@@ -75,3 +75,18 @@ tasks.register('buildAll') {
 tasks.named('build') {
     dependsOn tasks.named('buildAll')
 }
+
+tasks.register('checkstyle') {
+    group = 'verification'
+    description = 'Run the pinned strict Checkstyle distribution on all Java source sets.'
+}
+
+apply from: 'gradle/checkstyle.gradle'
+
+subprojects {
+    plugins.withId('java') {
+        tasks.named('check') {
+            dependsOn rootProject.tasks.named('verifyCommonIsolation')
+        }
+    }
+}

@@ -22,13 +22,8 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.FlyingMoveControl;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
-import net.minecraft.world.entity.ai.goal.FollowOwnerGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
-import net.minecraft.world.entity.ai.goal.TemptGoal;
-import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomFlyingGoal;
-import net.minecraft.world.entity.ai.goal.target.OwnerHurtByTargetGoal;
-import net.minecraft.world.entity.ai.goal.target.OwnerHurtTargetGoal;
 import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.monster.RangedAttackMob;
@@ -44,7 +39,12 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import ru.nyansus.mc.config.DairatzConfig;
+import ru.nyansus.mc.entity.ai.FairyFollowOwnerGoal;
+import ru.nyansus.mc.entity.ai.FairyOwnerAttackGoal;
+import ru.nyansus.mc.entity.ai.FairyOwnerHurtByGoal;
 import ru.nyansus.mc.entity.ai.FairyRangedCombatGoal;
+import ru.nyansus.mc.entity.ai.FairyTemptGoal;
+import ru.nyansus.mc.entity.ai.FairyWildWanderGoal;
 
 public abstract class AbstractFairyEntity extends TamableAnimal implements RangedAttackMob {
 
@@ -73,8 +73,6 @@ public abstract class AbstractFairyEntity extends TamableAnimal implements Range
     private static final double HARD_TELEPORT_DISTANCE_SQ =
             HARD_TELEPORT_DISTANCE * HARD_TELEPORT_DISTANCE;
     private static final int TELEPORT_CHECK_INTERVAL = 40;
-    private static final double TELEPORT_SCATTER_RANGE = 4.0;
-    private static final double TELEPORT_Y_OFFSET = 1.0;
 
     private static final float PROJECTILE_SPEED = 1.5f;
     private static final float PROJECTILE_INACCURACY = 1.0f;
@@ -105,50 +103,17 @@ public abstract class AbstractFairyEntity extends TamableAnimal implements Range
         goalSelector.addGoal(0, new FloatGoal(this));
         goalSelector.addGoal(1, new FairyRangedCombatGoal(
                 this, RANGED_ATTACK_SPEED, getFireRate(), RANGED_ATTACK_RANGE));
-        goalSelector.addGoal(2, new TemptGoal(
-                this, TEMPT_SPEED, stack -> stack.is(getTameItem()), false));
-        FollowOwnerGoal followGoal = new FollowOwnerGoal(
-                this, FOLLOW_OWNER_SPEED,
-                FOLLOW_START_DISTANCE, FOLLOW_STOP_DISTANCE) {
-            @Override
-            public boolean canUse() {
-                return !AbstractFairyEntity.this.isOnHead() && super.canUse();
-            }
-        };
-        goalSelector.addGoal(3, followGoal);
-        goalSelector.addGoal(5, new WaterAvoidingRandomFlyingGoal(this, WANDER_SPEED) {
-            @Override
-            public boolean canUse() {
-                return !AbstractFairyEntity.this.isOnHead()
-                        && !AbstractFairyEntity.this.isTame() && super.canUse();
-            }
-        });
+        goalSelector.addGoal(2, new FairyTemptGoal(this, TEMPT_SPEED));
+        goalSelector.addGoal(3, new FairyFollowOwnerGoal(
+            this, FOLLOW_OWNER_SPEED, FOLLOW_START_DISTANCE, FOLLOW_STOP_DISTANCE
+        ));
+        goalSelector.addGoal(5, new FairyWildWanderGoal(this, WANDER_SPEED));
         goalSelector.addGoal(6,
                 new LookAtPlayerGoal(this, Player.class, LOOK_AT_PLAYER_RANGE));
         goalSelector.addGoal(7, new RandomLookAroundGoal(this));
 
-        targetSelector.addGoal(1, new OwnerHurtByTargetGoal(this) {
-            @Override
-            public boolean canUse() {
-                return !AbstractFairyEntity.this.isOnHead() && super.canUse();
-            }
-
-            @Override
-            public boolean canContinueToUse() {
-                return isTargetInRange() && super.canContinueToUse();
-            }
-        });
-        targetSelector.addGoal(2, new OwnerHurtTargetGoal(this) {
-            @Override
-            public boolean canUse() {
-                return !AbstractFairyEntity.this.isOnHead() && super.canUse();
-            }
-
-            @Override
-            public boolean canContinueToUse() {
-                return isTargetInRange() && super.canContinueToUse();
-            }
-        });
+        targetSelector.addGoal(1, new FairyOwnerHurtByGoal(this));
+        targetSelector.addGoal(2, new FairyOwnerAttackGoal(this));
     }
 
     protected static AttributeSupplier.Builder createFairyAttributes(
@@ -167,12 +132,22 @@ public abstract class AbstractFairyEntity extends TamableAnimal implements Range
         builder.define(ON_HEAD, false);
     }
 
+    public boolean hasHome() {
+        return false;
+    }
+
+    public void releaseHome() {
+    }
+
     public boolean isOnHead() {
         return entityData.get(ON_HEAD);
     }
 
     public void setOnHead(boolean onHead) {
         entityData.set(ON_HEAD, onHead);
+        if (onHead) {
+            mountCooldown = MOUNT_COOLDOWN_TICKS;
+        }
     }
 
     @Override
@@ -205,7 +180,7 @@ public abstract class AbstractFairyEntity extends TamableAnimal implements Range
             }
         }
 
-        if (!level().isClientSide() && isTame() && !isOnHead()) {
+        if (!level().isClientSide() && isTame() && !isOnHead() && !hasHome()) {
             LivingEntity owner = getOwner();
             if (owner != null && owner.isAlive()) {
                 double distSq = distanceToSqr(owner);
@@ -214,13 +189,7 @@ public abstract class AbstractFairyEntity extends TamableAnimal implements Range
                 }
                 if (distSq > HARD_TELEPORT_DISTANCE_SQ
                         && tickCount % TELEPORT_CHECK_INTERVAL == 0) {
-                    double x = owner.getX()
-                            + (random.nextDouble() - 0.5) * TELEPORT_SCATTER_RANGE;
-                    double y = owner.getY() + TELEPORT_Y_OFFSET;
-                    double z = owner.getZ()
-                            + (random.nextDouble() - 0.5) * TELEPORT_SCATTER_RANGE;
-                    teleportTo(x, y, z);
-                    getNavigation().stop();
+                    tryTeleportNearOwner(owner);
                 }
             }
         }
@@ -234,6 +203,24 @@ public abstract class AbstractFairyEntity extends TamableAnimal implements Range
         }
     }
 
+    public boolean tryTeleportNearOwner(LivingEntity owner) {
+        if (level().isClientSide() || owner.level() != level() || hasHome() || isOnHead()) {
+            return false;
+        }
+        for (int attempt = 0; attempt < 16; attempt++) {
+            BlockPos target = owner.blockPosition().offset(
+                random.nextIntBetweenInclusive(-2, 2), random.nextInt(3), random.nextIntBetweenInclusive(-2, 2)
+            );
+            Vec3 point = Vec3.atBottomCenterOf(target);
+            if (FairyPlacement.isSafe(level(), this, point)) {
+                teleportTo(point.x, point.y, point.z);
+                getNavigation().stop();
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public boolean wantsToAttack(LivingEntity target, LivingEntity owner) {
         if (target instanceof AbstractFairyEntity) {
@@ -242,7 +229,7 @@ public abstract class AbstractFairyEntity extends TamableAnimal implements Range
         return super.wantsToAttack(target, owner);
     }
 
-    protected boolean isTargetInRange() {
+    public boolean isTargetInRange() {
         LivingEntity owner = getOwner();
         if (owner == null) {
             return false;
@@ -286,7 +273,8 @@ public abstract class AbstractFairyEntity extends TamableAnimal implements Range
                 stack.shrink(1);
             }
             if (!level().isClientSide()) {
-                if (random.nextInt(DairatzConfig.tameChance) == 0) {
+                if (random.nextInt(DairatzConfig.current().tameChance()) == 0) {
+                    releaseHome();
                     tame(player);
                     level().broadcastEntityEvent(this, (byte) 7);
                 } else {
@@ -302,7 +290,7 @@ public abstract class AbstractFairyEntity extends TamableAnimal implements Range
                 stack.shrink(1);
             }
             if (!level().isClientSide()) {
-                heal((float) DairatzConfig.healAmount);
+                heal((float) DairatzConfig.current().healAmount());
                 level().broadcastEntityEvent(this, (byte) 7);
             }
             return InteractionResult.SUCCESS;
@@ -318,6 +306,7 @@ public abstract class AbstractFairyEntity extends TamableAnimal implements Range
                 if (alreadyHasFairy) {
                     return InteractionResult.PASS;
                 }
+                releaseHome();
                 setOnHead(true);
                 mountCooldown = MOUNT_COOLDOWN_TICKS;
             }
@@ -379,7 +368,7 @@ public abstract class AbstractFairyEntity extends TamableAnimal implements Range
 
     @Override
     public boolean removeWhenFarAway(double distanceToClosestPlayer) {
-        return !isTame();
+        return !isTame() && !hasHome();
     }
 
     @Override

@@ -1,0 +1,112 @@
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+import java.security.MessageDigest
+
+ext.checkstyleVersion = '14.3.0'
+ext.checkstyleSha256 = '754e218ab1fcabb1e1c5f8530e9d3aa37636806c22987bb279dd907a6ee749b2'
+
+def sha256 = { File input ->
+    MessageDigest digest = MessageDigest.getInstance('SHA-256')
+    input.withInputStream { stream ->
+        byte[] buffer = new byte[65536]
+        int count
+        while ((count = stream.read(buffer)) != -1) {
+            digest.update(buffer, 0, count)
+        }
+    }
+    digest.digest().encodeHex().toString()
+}
+
+def checkstyleJar = new File(
+    gradle.gradleUserHomeDir,
+    "caches/dairatz/checkstyle/${checkstyleVersion}/checkstyle-${checkstyleVersion}-all.jar"
+)
+
+task prepareCheckstyle {
+    group = 'verification'
+    description = 'Download and verify the pinned standalone Checkstyle distribution.'
+    inputs.property 'version', checkstyleVersion
+    inputs.property 'sha256', checkstyleSha256
+    outputs.file checkstyleJar
+    outputs.upToDateWhen {
+        checkstyleJar.isFile() && sha256(checkstyleJar) == checkstyleSha256
+    }
+    doLast {
+        if (checkstyleJar.isFile() && sha256(checkstyleJar) == checkstyleSha256) {
+            return
+        }
+        if (gradle.startParameter.offline) {
+            throw new GradleException('Verified Checkstyle is not cached. Run prepareCheckstyle once without --offline.')
+        }
+        checkstyleJar.parentFile.mkdirs()
+        File temporary = File.createTempFile('checkstyle-', '.download', checkstyleJar.parentFile)
+        try {
+            URL url = new URL(
+                "https://github.com/checkstyle/checkstyle/releases/download/" +
+                    "checkstyle-${checkstyleVersion}/checkstyle-${checkstyleVersion}-all.jar"
+            )
+            URLConnection connection = url.openConnection()
+            connection.connectTimeout = 30000
+            connection.readTimeout = 120000
+            connection.setRequestProperty('User-Agent', 'dairatz-build')
+            connection.inputStream.withCloseable { input ->
+                temporary.withOutputStream { output ->
+                    output << input
+                }
+            }
+            if (sha256(temporary) != checkstyleSha256) {
+                throw new GradleException('Checkstyle download checksum does not match the pinned release.')
+            }
+            Files.move(temporary.toPath(), checkstyleJar.toPath(), StandardCopyOption.REPLACE_EXISTING)
+        } finally {
+            temporary.delete()
+        }
+    }
+}
+
+
+subprojects { target ->
+    plugins.withId('java') {
+        sourceSets.configureEach { sourceSet ->
+            if (sourceSet.name in ['main', 'client', 'test', 'gametest']) {
+                def lint = tasks.register("checkstyle${sourceSet.name.capitalize()}", JavaExec) {
+                    group = 'verification'
+                    dependsOn rootProject.tasks.named('prepareCheckstyle')
+                    mainClass = 'com.puppycrawl.tools.checkstyle.Main'
+                    classpath = rootProject.files(checkstyleJar)
+                    inputs.files sourceSet.allJava
+                    inputs.file rootProject.file('checkstyle.xml')
+                    inputs.property 'checkstyleVersion', rootProject.checkstyleVersion
+                    def report = layout.buildDirectory.file("reports/checkstyle/${sourceSet.name}.xml")
+                    outputs.file report
+                    onlyIf { !sourceSet.allJava.empty }
+                    doFirst {
+                        def lintHome = rootProject.findProperty('checkstyleJavaHome') ?:
+                                System.getenv('CHECKSTYLE_JAVA_HOME')
+                        if (!lintHome) {
+                            throw new GradleException('Set CHECKSTYLE_JAVA_HOME or -PcheckstyleJavaHome to Java 21+.')
+                        }
+                        def javaFile = new File(lintHome.toString(),
+                                "bin/java${System.getProperty('os.name').startsWith('Windows') ? '.exe' : ''}")
+                        if (!javaFile.isFile()) {
+                            throw new GradleException('The configured Checkstyle Java executable does not exist.')
+                        }
+                        def versionProcess = new ProcessBuilder(javaFile.absolutePath, '-version').redirectErrorStream(true).start()
+                        def versionText = versionProcess.inputStream.getText('UTF-8')
+                        def matched = versionText =~ /version "(\d+)/
+                        if (versionProcess.waitFor() != 0 || !matched.find() || matched.group(1).toInteger() < 21) {
+                            throw new GradleException('Checkstyle requires a Java 21+ installation.')
+                        }
+                        executable = javaFile.absolutePath
+                        report.get().asFile.parentFile.mkdirs()
+                        args = ['-c', rootProject.file('checkstyle.xml').absolutePath,
+                                '-f', 'xml', '-o', report.get().asFile.absolutePath]
+                        args += sourceSet.allJava.files.sort().collect { it.absolutePath }
+                    }
+                }
+                tasks.named('check') { dependsOn lint }
+                rootProject.tasks.named('checkstyle') { dependsOn lint }
+            }
+        }
+    }
+}

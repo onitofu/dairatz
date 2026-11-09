@@ -1,13 +1,13 @@
 package ru.nyansus.mc;
 
+import java.nio.file.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.nyansus.mc.config.DairatzConfig;
 import ru.nyansus.mc.registry.ContentRegistrar;
 import ru.nyansus.mc.registry.ModEntities;
+import ru.nyansus.mc.registry.ModHollows;
 import ru.nyansus.mc.registry.ModItems;
-
-import java.nio.file.Path;
 
 public final class Dairatz {
     public static final String MOD_ID = "dairatz";
@@ -20,6 +20,7 @@ public final class Dairatz {
         DairatzConfig.load(configDirectory.resolve("dairatz.json"));
         ModEntities.register(registrar);
         ModItems.register(registrar);
+        ModHollows.register(registrar);
         LOGGER.info("Dairatz common content initialized");
     }
 }

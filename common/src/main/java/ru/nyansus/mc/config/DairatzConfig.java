@@ -2,139 +2,87 @@ package ru.nyansus.mc.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
-public class DairatzConfig {
+public final class DairatzConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Logger LOGGER = LoggerFactory.getLogger(DairatzConfig.class);
+    private static volatile DairatzSettings settings = DairatzSettings.DEFAULTS;
     private static Path configPath;
 
-    public static double fairyHealth = 16.0;
-    public static double furballDamage = 2.0;
-    public static int fireRate = 60;
-    public static double flySpeed = 0.4;
-    public static int dairatzSpawnWeight = 10;
-    public static int dairatzMinGroup = 2;
-    public static int dairatzMaxGroup = 4;
-
-    public static double winterFairyHealth = 16.0;
-    public static double winterSnowballDamage = 1.0;
-    public static int winterFireRate = 60;
-    public static double winterFlySpeed = 0.4;
-    public static int winterSlownessDuration = 60;
-    public static int winterSlownessLevel = 2;
-    public static int winterFreezeRadius = 2;
-    public static int winterSpawnWeight = 8;
-    public static int winterMinGroup = 2;
-    public static int winterMaxGroup = 3;
-
-    public static double healAmount = 4.0;
-    public static int tameChance = 3;
-
-    @SuppressWarnings("checkstyle:MemberName")
-    private static class Data {
-        double fairyHealth = 16.0;
-        double furballDamage = 2.0;
-        int fireRate = 60;
-        double flySpeed = 0.4;
-        int dairatzSpawnWeight = 10;
-        int dairatzMinGroup = 2;
-        int dairatzMaxGroup = 4;
-
-        double winterFairyHealth = 16.0;
-        double winterSnowballDamage = 1.0;
-        int winterFireRate = 60;
-        double winterFlySpeed = 0.4;
-        int winterSlownessDuration = 60;
-        int winterSlownessLevel = 2;
-        int winterFreezeRadius = 2;
-        int winterSpawnWeight = 8;
-        int winterMinGroup = 2;
-        int winterMaxGroup = 3;
-
-        double healAmount = 4.0;
-        int tameChance = 3;
+    private DairatzConfig() {
     }
 
-    public static void load(Path path) {
-        configPath = path;
-        if (Files.exists(configPath)) {
-            try {
-                String json = Files.readString(configPath);
-                Data data = GSON.fromJson(json, Data.class);
-                if (data != null) {
-                    applyData(data);
-                }
-            } catch (Exception e) {
-                LOGGER.error("Failed to load Dairatz config from {}", configPath, e);
-                save();
-            }
-        } else {
+    public static DairatzSettings current() {
+        return settings;
+    }
+
+    public static boolean load(Path path) {
+        configPath = path.toAbsolutePath().normalize();
+        if (!Files.exists(configPath)) {
             save();
+            return true;
         }
-    }
-
-    private static void applyData(Data data) {
-        fairyHealth = data.fairyHealth;
-        furballDamage = data.furballDamage;
-        fireRate = data.fireRate;
-        flySpeed = data.flySpeed;
-        dairatzSpawnWeight = data.dairatzSpawnWeight;
-        dairatzMinGroup = data.dairatzMinGroup;
-        dairatzMaxGroup = data.dairatzMaxGroup;
-
-        winterFairyHealth = data.winterFairyHealth;
-        winterSnowballDamage = data.winterSnowballDamage;
-        winterFireRate = data.winterFireRate;
-        winterFlySpeed = data.winterFlySpeed;
-        winterSlownessDuration = data.winterSlownessDuration;
-        winterSlownessLevel = data.winterSlownessLevel;
-        winterFreezeRadius = data.winterFreezeRadius;
-        winterSpawnWeight = data.winterSpawnWeight;
-        winterMinGroup = data.winterMinGroup;
-        winterMaxGroup = data.winterMaxGroup;
-
-        healAmount = data.healAmount;
-        tameChance = data.tameChance;
+        try {
+            JsonObject supplied = JsonParser.parseString(Files.readString(configPath)).getAsJsonObject();
+            JsonObject merged = GSON.toJsonTree(DairatzSettings.DEFAULTS).getAsJsonObject();
+            for (String key : merged.keySet()) {
+                if (supplied.has(key)) {
+                    if (supplied.get(key).isJsonNull()) {
+                        throw new InvalidSettingsException(key + " must not be null");
+                    }
+                    merged.add(key, supplied.get(key));
+                }
+            }
+            DairatzSettings candidate = GSON.fromJson(merged, DairatzSettings.class);
+            settings = candidate;
+            return true;
+        } catch (IOException | RuntimeException error) {
+            String reason = "Invalid JSON, field types, or unreadable configuration";
+            Throwable cause = error;
+            for (int depth = 0; cause != null && depth < 16; depth++, cause = cause.getCause()) {
+                if (cause instanceof InvalidSettingsException) {
+                    reason = cause.getMessage();
+                    break;
+                }
+            }
+            LOGGER.warn("Rejected Dairatz configuration; keeping previous settings: {}", reason);
+            return false;
+        }
     }
 
     public static void save() {
         if (configPath == null) {
-            throw new IllegalStateException("Dairatz config path has not been initialized");
+            throw new IllegalStateException("Dairatz configuration path has not been initialized");
         }
+        Path temporary = null;
         try {
-            Data data = new Data();
-            data.fairyHealth = fairyHealth;
-            data.furballDamage = furballDamage;
-            data.fireRate = fireRate;
-            data.flySpeed = flySpeed;
-            data.dairatzSpawnWeight = dairatzSpawnWeight;
-            data.dairatzMinGroup = dairatzMinGroup;
-            data.dairatzMaxGroup = dairatzMaxGroup;
-
-            data.winterFairyHealth = winterFairyHealth;
-            data.winterSnowballDamage = winterSnowballDamage;
-            data.winterFireRate = winterFireRate;
-            data.winterFlySpeed = winterFlySpeed;
-            data.winterSlownessDuration = winterSlownessDuration;
-            data.winterSlownessLevel = winterSlownessLevel;
-            data.winterFreezeRadius = winterFreezeRadius;
-            data.winterSpawnWeight = winterSpawnWeight;
-            data.winterMinGroup = winterMinGroup;
-            data.winterMaxGroup = winterMaxGroup;
-
-            data.healAmount = healAmount;
-            data.tameChance = tameChance;
-
             Files.createDirectories(configPath.getParent());
-            Files.writeString(configPath, GSON.toJson(data));
-        } catch (IOException e) {
-            LOGGER.error("Failed to save Dairatz config to {}", configPath, e);
+            temporary = Files.createTempFile(configPath.getParent(), "dairatz-", ".tmp");
+            Files.writeString(temporary, GSON.toJson(settings) + "\n");
+            try {
+                Files.move(temporary, configPath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException error) {
+                Files.move(temporary, configPath, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException error) {
+            LOGGER.error("Failed to save Dairatz configuration", error);
+        } finally {
+            if (temporary != null) {
+                try {
+                    Files.deleteIfExists(temporary);
+                } catch (IOException error) {
+                    LOGGER.warn("Could not remove temporary Dairatz configuration");
+                }
+            }
         }
     }
 }

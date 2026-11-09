@@ -18,11 +18,12 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.world.BiomeModifier;
 import net.minecraftforge.event.AddPackFindersEvent;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.event.TickEvent.ServerTickEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.event.entity.SpawnPlacementRegisterEvent;
 import net.minecraftforge.eventbus.api.bus.BusGroup;
-import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.fml.loading.FMLPaths;
@@ -33,7 +34,9 @@ import ru.nyansus.mc.Dairatz;
 import ru.nyansus.mc.entity.AbstractFairyEntity;
 import ru.nyansus.mc.entity.DairatzEntity;
 import ru.nyansus.mc.entity.WinterFairyEntity;
+import ru.nyansus.mc.hollow.FairyRecoveryJournal;
 import ru.nyansus.mc.registry.ModEntities;
+import ru.nyansus.mc.registry.ModHollows;
 import ru.nyansus.mc.registry.ModItems;
 
 @Mod(Dairatz.MOD_ID)
@@ -56,6 +59,7 @@ public final class DairatzForge {
         registrar.register(modBusGroup);
         BIOME_MODIFIERS.register(modBusGroup);
 
+        ServerTickEvent.Post.BUS.addListener(event -> FairyRecoveryJournal.tick(event.server()));
         EntityAttributeCreationEvent.BUS.addListener(DairatzForge::registerAttributes);
         SpawnPlacementRegisterEvent.BUS.addListener(
                 DairatzForge::registerSpawnPlacements);
@@ -90,7 +94,9 @@ public final class DairatzForge {
     }
 
     private static void addCreativeItems(BuildCreativeModeTabContentsEvent event) {
-        if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS) {
+        if (event.getTabKey() == CreativeModeTabs.NATURAL_BLOCKS) {
+            event.accept(ModHollows.oakHollowItem());
+        } else if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS) {
             event.accept(ModItems.dairatzSpawnEgg());
             event.accept(ModItems.winterFairySpawnEgg());
         } else if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {

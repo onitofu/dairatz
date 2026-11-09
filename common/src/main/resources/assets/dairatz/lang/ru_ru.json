@@ -6,5 +6,16 @@
   "entity.dairatz.dairatz_entity": "Фея",
   "entity.dairatz.furball": "Клубок шерсти",
   "entity.dairatz.winter_fairy": "Зимняя Фея",
-  "entity.dairatz.frostball": "Ледяной клубок"
+  "entity.dairatz.frostball": "Ледяной клубок",
+  "block.dairatz.oak_fairy_hollow": "Дубовое дупло феи",
+  "message.dairatz.hollow.empty": "Принесите свою фею на голове, чтобы поселить её.",
+  "message.dairatz.hollow.wrong_fairy": "В дубовом дупле может жить только обычная фея.",
+  "message.dairatz.hollow.blocked": "Вход в дупло перекрыт.",
+  "message.dairatz.hollow.unavailable": "Хозяйка дома недоступна или слишком далеко.",
+  "message.dairatz.hollow.settled": "Ваша фея поселилась здесь и будет ухаживать за садом.",
+  "message.dairatz.hollow.away": "Хозяйка сейчас снаружи. Этот дом по-прежнему занят.",
+  "message.dairatz.hollow.knocked": "Фея выглядывает на стук.",
+  "message.dairatz.hollow.head_full": "На вашей голове уже сидит фея.",
+  "message.dairatz.hollow.not_owner": "Эта фея вам не принадлежит.",
+  "message.dairatz.hollow.recalled": "Ваша фея снова готова путешествовать с вами."
 }

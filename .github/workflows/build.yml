@@ -30,6 +30,9 @@ jobs:
           java-version: '21'
           distribution: temurin
 
+      - name: Select Checkstyle JVM
+        run: echo "CHECKSTYLE_JAVA_HOME=$JAVA_HOME" >> "$GITHUB_ENV"
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
@@ -38,6 +41,26 @@ jobs:
           ./gradlew verifyCommonIsolation
           :fabric:checkstyleMain :fabric:checkstyleClient
           -Ptarget=1.21.11-fabric
+
+      - name: Run fairy hollow game tests
+        run: ./gradlew :fabric:runGameTest :fabric:checkstyleGametest -Ptarget=1.21.11-fabric
+
+      - name: Check client rendering and world restarts
+        run: xvfb-run -a ./gradlew :fabric:runClientGameTest -Ptarget=1.21.11-fabric
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+
+      - name: Upload game test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fairy-hollow-test-reports
+          path: |
+            fabric/build/reports/
+            fabric/build/run/gameTest/logs/
+            fabric/build/run/clientGameTest/logs/
+            fabric/build/run/clientGameTest/screenshots/
+          if-no-files-found: warn
 
   build:
     name: ${{ matrix.name }}
@@ -63,6 +86,9 @@ jobs:
         with:
           java-version: '21'
           distribution: temurin
+
+      - name: Select Checkstyle JVM
+        run: echo "CHECKSTYLE_JAVA_HOME=$JAVA_HOME" >> "$GITHUB_ENV"
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4

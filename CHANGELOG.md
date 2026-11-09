@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.2.1 (unreleased)
+
+- Added oak fairy hollows that generate in natural oak trees in new Overworld chunks.
+- Regular fairies can live in hollows, shelter at night or in rain, and pollinate nearby plants.
+- Added occupied and empty hollow appearances, resident interaction messages, and Silk Touch drops.
+- Preserved fairy identity, ownership, names, and health when entering or leaving a hollow.
+- Added persistent recovery when a blocked entrance prevents a resident from escaping a broken hollow.
+- Fixed fairy teleportation and winter freezing to respect loaded chunks and safe placement.
+- Validated configuration values and made configuration updates atomic.
+- Added strict Checkstyle checks and automated tests for hollow behavior, rendering, and world restarts.
+
 ## 1.1.1 (unreleased)
 
 - Added Fabric, Forge, and NeoForge support for Minecraft 1.21.11.

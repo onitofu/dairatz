@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "dairatz-test",
+  "version": "1.0.0",
+  "name": "Dairatz Game Tests",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-gametest": [
+      "ru.nyansus.mc.hollow.FairyHollowGameTests",
+      "ru.nyansus.mc.hollow.FairyRegressionGameTests",
+      "ru.nyansus.mc.hollow.FairyRecoveryGameTests",
+      "ru.nyansus.mc.config.DairatzConfigGameTests"
+    ],
+    "fabric-client-gametest": [
+      "ru.nyansus.mc.hollow.FairyHollowClientTest",
+      "ru.nyansus.mc.hollow.FairyRecoveryClientTest"
+    ]
+  },
+  "depends": {
+    "dairatz": "*",
+    "fabric-gametest-api-v1": "*"
+  }
+}

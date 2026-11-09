@@ -33,6 +33,6 @@ public class FurballEntity extends AbstractFairyProjectile {
     @Override
     protected void applyHitEffect(Entity target) {
         target.hurt(damageSources().thrown(this, getOwner()),
-                (float) DairatzConfig.furballDamage);
+                (float) DairatzConfig.current().furballDamage());
     }
 }

@@ -1,6 +1,5 @@
 plugins {
     id 'java'
-    id 'checkstyle'
     id 'net.minecraftforge.gradle' version '[7.0.3,8)'
 }
 
@@ -73,10 +72,6 @@ processResources {
     }
 }
 
-checkstyle {
-    toolVersion = '10.21.4'
-    configFile = rootProject.file('config/checkstyle/checkstyle.xml')
-}
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'

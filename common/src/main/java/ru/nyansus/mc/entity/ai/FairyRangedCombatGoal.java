@@ -52,7 +52,7 @@ public final class FairyRangedCombatGoal extends Goal {
     @Override
     public boolean canUse() {
         LivingEntity currentTarget = fairy.getTarget();
-        if (fairy.isOnHead() || currentTarget == null || !currentTarget.isAlive()) {
+        if (fairy.hasHome() || fairy.isOnHead() || currentTarget == null || !currentTarget.isAlive()) {
             return false;
         }
         target = currentTarget;
@@ -61,7 +61,7 @@ public final class FairyRangedCombatGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        return !fairy.isOnHead()
+        return !fairy.hasHome() && !fairy.isOnHead()
                 && target != null
                 && target.isAlive()
                 && fairy.getTarget() == target;

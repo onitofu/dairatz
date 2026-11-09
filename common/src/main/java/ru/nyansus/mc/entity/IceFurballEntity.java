@@ -43,14 +43,14 @@ public class IceFurballEntity extends AbstractFairyProjectile {
         if (target instanceof LivingEntity living) {
             living.addEffect(new MobEffectInstance(
                     MobEffects.SLOWNESS,
-                    DairatzConfig.winterSlownessDuration,
-                    DairatzConfig.winterSlownessLevel - 1
+                    DairatzConfig.current().winterSlownessDuration(),
+                    DairatzConfig.current().winterSlownessLevel() - 1
             ));
         }
     }
 
     private float damageAgainst(Entity target) {
-        float damage = (float) DairatzConfig.winterSnowballDamage;
+        float damage = (float) DairatzConfig.current().winterSnowballDamage();
         if (target.getType().is(EntityTypeTags.FREEZE_HURTS_EXTRA_TYPES)) {
             return damage * FIRE_MOB_DAMAGE_MULTIPLIER;
         }

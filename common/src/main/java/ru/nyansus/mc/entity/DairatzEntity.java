@@ -1,21 +1,34 @@
 package ru.nyansus.mc.entity;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.tags.BlockTags;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
-import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.BonemealableBlock;
-import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import ru.nyansus.mc.config.DairatzConfig;
+import ru.nyansus.mc.entity.ai.FairyGardenWanderGoal;
+import ru.nyansus.mc.entity.ai.FairyPollinateGoal;
+import ru.nyansus.mc.entity.ai.FairyReturnHomeGoal;
+import ru.nyansus.mc.hollow.FairyActivitySchedule;
+import ru.nyansus.mc.hollow.FairyHollowBlockEntity;
+import ru.nyansus.mc.hollow.FairyRecoveryJournal;
 
 public class DairatzEntity extends AbstractFairyEntity {
+    public static final int GARDEN_RADIUS = 8;
+    public static final int GARDEN_HEIGHT = 3;
+
+    private GlobalPos home;
+    private long outsideUntil;
+    private long nextPollinationTick;
+
     public DairatzEntity(EntityType<? extends TamableAnimal> entityType, Level level) {
         super(entityType, level);
     }
@@ -27,17 +40,19 @@ public class DairatzEntity extends AbstractFairyEntity {
 
     @Override
     protected int getFireRate() {
-        return DairatzConfig.fireRate;
+        return DairatzConfig.current().fireRate();
     }
 
     @Override
     protected void registerGoals() {
         super.registerGoals();
-        goalSelector.addGoal(4, new PollinateGoal());
+        goalSelector.addGoal(2, new FairyReturnHomeGoal(this));
+        goalSelector.addGoal(4, new FairyPollinateGoal(this));
+        goalSelector.addGoal(5, new FairyGardenWanderGoal(this));
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return createFairyAttributes(DairatzConfig.fairyHealth, DairatzConfig.flySpeed);
+        return createFairyAttributes(DairatzConfig.current().fairyHealth(), DairatzConfig.current().flySpeed());
     }
 
     @Override
@@ -45,111 +60,100 @@ public class DairatzEntity extends AbstractFairyEntity {
         return new FurballEntity(level(), this);
     }
 
-    private class PollinateGoal extends Goal {
-        private static final int POLLINATE_DURATION_TICKS = 60;
-        private static final int POLLINATE_COOLDOWN_TICKS = 200;
-        private static final double ARRIVAL_DISTANCE_SQ = 2.5;
-        private static final int FLOWER_SEARCH_ATTEMPTS = 10;
-        private static final int FLOWER_SEARCH_RANGE_XZ = 8;
-        private static final int FLOWER_SEARCH_RANGE_Y = 3;
-        private static final int GROW_RANGE_XZ = 3;
-        private static final int GROW_RANGE_Y = 2;
-        private static final double BLOCK_CENTER_OFFSET = 0.5;
-        private static final double HOVER_HEIGHT = 1.0;
+    @Override
+    public boolean hasHome() {
+        return home != null;
+    }
 
-        private BlockPos targetFlower;
-        private int pollinatingTicks;
-        private int cooldown;
+    public GlobalPos home() {
+        return home;
+    }
 
-        @Override
-        public boolean canUse() {
-            if (isTame() || isOnHead()) {
-                return false;
-            }
-            if (cooldown > 0) {
-                cooldown--;
-                return false;
-            }
-            targetFlower = findFlower();
-            return targetFlower != null;
+    public void assignHome(BlockPos pos) {
+        home = GlobalPos.of(level().dimension(), pos.immutable());
+        setOnHead(false);
+        setTarget(null);
+        getNavigation().stop();
+    }
+
+    @Override
+    public void releaseHome() {
+        GlobalPos previous = home;
+        home = null;
+        if (previous != null && level() instanceof ServerLevel server) {
+            FairyRecoveryJournal.get(server.getServer()).releaseHome(server.getServer(), previous, getUUID());
         }
+    }
 
-        @Override
-        public void start() {
-            pollinatingTicks = 0;
+    public void stayOutside() {
+        outsideUntil = level().getGameTime() + 200;
+    }
+
+    public boolean wantsShelter() {
+        if (!hasHome() || level().getGameTime() < outsideUntil) {
+            return false;
         }
+        return FairyActivitySchedule.isRestTime(level());
+    }
 
-        @Override
-        public void tick() {
-            if (targetFlower == null) {
-                return;
-            }
-            getNavigation().moveTo(
-                    targetFlower.getX() + BLOCK_CENTER_OFFSET,
-                    targetFlower.getY() + HOVER_HEIGHT,
-                    targetFlower.getZ() + BLOCK_CENTER_OFFSET,
-                    1.0
-            );
-            double dist = distanceToSqr(
-                    targetFlower.getX() + BLOCK_CENTER_OFFSET,
-                    targetFlower.getY() + HOVER_HEIGHT,
-                    targetFlower.getZ() + BLOCK_CENTER_OFFSET
-            );
-            if (dist < ARRIVAL_DISTANCE_SQ) {
-                pollinatingTicks++;
-                if (pollinatingTicks >= POLLINATE_DURATION_TICKS) {
-                    growNearby();
-                    cooldown = POLLINATE_COOLDOWN_TICKS;
-                    stop();
+    public boolean isWithinGarden(BlockPos pos) {
+        if (home == null) {
+            return true;
+        }
+        long dx = (long) pos.getX() - home.pos().getX();
+        long dz = (long) pos.getZ() - home.pos().getZ();
+        return dx * dx + dz * dz <= GARDEN_RADIUS * GARDEN_RADIUS
+                && Math.abs(pos.getY() - home.pos().getY()) <= GARDEN_HEIGHT;
+    }
+
+    public long nextPollinationTick() {
+        return nextPollinationTick;
+    }
+
+    public void delayPollination(int ticks) {
+        nextPollinationTick = level().getGameTime() + ticks;
+    }
+
+    public boolean canPollinate() {
+        return !isOnHead() && ((!isTame() && !hasHome()) || (hasHome() && !wantsShelter()));
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (!level().isClientSide() && home != null && tickCount % 20 == 0) {
+            if (!home.dimension().equals(level().dimension())) {
+                releaseHome();
+            } else if (level().hasChunkAt(home.pos())) {
+                if (!(level().getBlockEntity(home.pos()) instanceof FairyHollowBlockEntity hollow)
+                        || !hollow.isResident(getUUID())) {
+                    releaseHome();
                 }
             }
         }
+    }
 
-        @Override
-        public boolean canContinueToUse() {
-            return targetFlower != null
-                    && pollinatingTicks < POLLINATE_DURATION_TICKS && !isTame();
-        }
+    @Override
+    public void die(DamageSource source) {
+        releaseHome();
+        super.die(source);
+    }
 
-        private BlockPos findFlower() {
-            BlockPos fairyPos = blockPosition();
-            for (int i = 0; i < FLOWER_SEARCH_ATTEMPTS; i++) {
-                BlockPos pos = fairyPos.offset(
-                        random.nextIntBetweenInclusive(
-                                -FLOWER_SEARCH_RANGE_XZ, FLOWER_SEARCH_RANGE_XZ),
-                        random.nextIntBetweenInclusive(
-                                -FLOWER_SEARCH_RANGE_Y, FLOWER_SEARCH_RANGE_Y),
-                        random.nextIntBetweenInclusive(
-                                -FLOWER_SEARCH_RANGE_XZ, FLOWER_SEARCH_RANGE_XZ)
-                );
-                if (level().getBlockState(pos).is(BlockTags.FLOWERS)) {
-                    return pos;
-                }
-            }
-            return null;
+    @Override
+    protected void addAdditionalSaveData(ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        if (home != null) {
+            output.store("FairyHome", GlobalPos.CODEC, home);
         }
+        output.putLong("OutsideUntil", outsideUntil);
+        output.putLong("NextPollinationTick", nextPollinationTick);
+    }
 
-        private void growNearby() {
-            Level world = level();
-            if (world.isClientSide()) {
-                return;
-            }
-            BlockPos center = blockPosition();
-            for (int dx = -GROW_RANGE_XZ; dx <= GROW_RANGE_XZ; dx++) {
-                for (int dy = -GROW_RANGE_Y; dy <= GROW_RANGE_Y; dy++) {
-                    for (int dz = -GROW_RANGE_XZ; dz <= GROW_RANGE_XZ; dz++) {
-                        BlockPos pos = center.offset(dx, dy, dz);
-                        BlockState state = world.getBlockState(pos);
-                        if (state.getBlock() instanceof BonemealableBlock growable) {
-                            if (growable.isValidBonemealTarget(world, pos, state)) {
-                                growable.performBonemeal(
-                                        (ServerLevel) world, random, pos, state);
-                                return;
-                            }
-                        }
-                    }
-                }
-            }
-        }
+    @Override
+    protected void readAdditionalSaveData(ValueInput input) {
+        super.readAdditionalSaveData(input);
+        home = input.read("FairyHome", GlobalPos.CODEC).orElse(null);
+        outsideUntil = input.getLongOr("OutsideUntil", 0);
+        nextPollinationTick = input.getLongOr("NextPollinationTick", 0);
     }
 }
