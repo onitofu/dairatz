@@ -23,7 +23,9 @@ import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.saveddata.SavedDataType;
 import net.minecraft.world.phys.Vec3;
 import ru.nyansus.mc.Dairatz;
-import ru.nyansus.mc.entity.DairatzEntity;
+import ru.nyansus.mc.loot.FairyLootSources;
+import ru.nyansus.mc.entity.PaleDetection;
+import ru.nyansus.mc.entity.HousedFairyEntity;
 import ru.nyansus.mc.entity.FairyPlacement;
 
 public final class FairyRecoveryJournal extends SavedData {
@@ -105,7 +107,7 @@ public final class FairyRecoveryJournal extends SavedData {
     }
 
     public FairyReleaseResult recoverNow(
-        MinecraftServer server, UUID id, BiPredicate<ServerLevel, DairatzEntity> spawn
+        MinecraftServer server, UUID id, BiPredicate<ServerLevel, HousedFairyEntity> spawn
     ) {
         PendingFairyRecovery recovery = recoveries.get(id);
         if (recovery == null) {
@@ -117,7 +119,7 @@ public final class FairyRecoveryJournal extends SavedData {
         }
         for (ServerLevel loaded : server.getAllLevels()) {
             Entity existing = loaded.getEntity(id);
-            if (existing instanceof DairatzEntity fairy) {
+            if (existing instanceof HousedFairyEntity fairy) {
                 if (recovery.origin().equals(fairy.home())) {
                     fairy.releaseHome();
                 }
@@ -136,7 +138,7 @@ public final class FairyRecoveryJournal extends SavedData {
         } catch (RuntimeException error) {
             return failed(id);
         }
-        if (!(restored instanceof DairatzEntity fairy) || !fairy.getUUID().equals(id)) {
+        if (!(restored instanceof HousedFairyEntity fairy) || !fairy.getUUID().equals(id)) {
             return failed(id);
         }
         BlockPos center = recovery.origin().pos();
@@ -181,9 +183,11 @@ public final class FairyRecoveryJournal extends SavedData {
 
     public static void tick(MinecraftServer server) {
         get(server).retry(server, ServerLevel::addFreshEntity);
+        FairyLootSources.clear();
+        PaleDetection.tick(server);
     }
 
-    public void retry(MinecraftServer server, BiPredicate<ServerLevel, DairatzEntity> spawn) {
+    public void retry(MinecraftServer server, BiPredicate<ServerLevel, HousedFairyEntity> spawn) {
         long now = server.overworld().getGameTime();
         int attempts = 0;
         int inspected = Math.min(32, work.size());

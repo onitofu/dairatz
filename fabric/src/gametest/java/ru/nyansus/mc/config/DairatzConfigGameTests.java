@@ -28,6 +28,8 @@ public final class DairatzConfigGameTests {
                 "{\"dairatzSpawnWeight\":2147483647}", "{\"winterSpawnWeight\":-1}",
                 "{\"fairyHealth\":0}", "{\"flySpeed\":-1}", "{\"furballDamage\":1e400}",
                 "{\"fireRate\":0}", "{\"winterSlownessLevel\":257}",
+                "{\"jungle\":null}", "{\"cherry\":{\"health\":0}}", "{\"pale\":{\"spawnWeight\":-1}}",
+                "{\"ender\":{\"minGroup\":4,\"maxGroup\":1}}", "{\"jungle\":5}",
                 "{\"tameChance\":null}", "[]", "{broken", "null"
             }) {
                 Files.writeString(path, json);
@@ -47,7 +49,7 @@ public final class DairatzConfigGameTests {
         Path path = Files.createTempFile("dairatz-config-test", ".json");
         try {
             Files.writeString(path, "{\"tameChance\":1,\"winterFreezeRadius\":0,\"dairatzSpawnWeight\":0,"
-                    + "\"futureOption\":true}");
+                    + "\"futureOption\":true,\"jungle\":{\"health\":24}}");
             test.assertTrue(DairatzConfig.load(path), "Partial settings with unknown fields must load");
             test.assertTrue(DairatzConfig.current().tameChance() == 1
                     && DairatzConfig.current().winterFreezeRadius() == 0
@@ -55,6 +57,9 @@ public final class DairatzConfigGameTests {
                     "Supported zero settings must disable optional features");
             test.assertTrue(DairatzConfig.current().fairyHealth() == DairatzSettings.DEFAULTS.fairyHealth(),
                     "Omitted fields must retain defaults");
+            test.assertTrue(DairatzConfig.current().jungle().health() == 24
+                    && DairatzConfig.current().jungle().fireRate() == 60,
+                    "Nested partial settings must merge with species defaults");
             DairatzConfig.save();
             test.assertTrue(DairatzConfig.load(path), "Atomically saved settings must load again");
             test.succeed();

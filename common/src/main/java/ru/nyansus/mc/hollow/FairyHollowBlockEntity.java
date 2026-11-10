@@ -23,22 +23,27 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import ru.nyansus.mc.Dairatz;
 import ru.nyansus.mc.entity.AbstractFairyEntity;
-import ru.nyansus.mc.entity.DairatzEntity;
+import ru.nyansus.mc.entity.FairyKind;
+import ru.nyansus.mc.entity.HousedFairyEntity;
 import ru.nyansus.mc.registry.ModEntities;
 import ru.nyansus.mc.registry.ModHollows;
 
 public final class FairyHollowBlockEntity extends BlockEntity {
     private HollowResident occupancy = HollowResident.empty();
     private boolean releaseFailureReported;
-    private final BiPredicate<ServerLevel, DairatzEntity> spawn;
+    private final BiPredicate<ServerLevel, HousedFairyEntity> spawn;
 
     public FairyHollowBlockEntity(BlockPos pos, BlockState state) {
         this(pos, state, ServerLevel::addFreshEntity);
     }
 
-    FairyHollowBlockEntity(BlockPos pos, BlockState state, BiPredicate<ServerLevel, DairatzEntity> spawn) {
+    FairyHollowBlockEntity(BlockPos pos, BlockState state, BiPredicate<ServerLevel, HousedFairyEntity> spawn) {
         super(ModHollows.hollowType(), pos, state);
         this.spawn = spawn;
+    }
+
+    public FairyKind kind() {
+        return ModHollows.kindOf(getBlockState().getBlock());
     }
 
     public UUID residentId() {
@@ -84,9 +89,10 @@ public final class FairyHollowBlockEntity extends BlockEntity {
         }
     }
 
-    public boolean enter(DairatzEntity fairy) {
+    public boolean enter(HousedFairyEntity fairy) {
         if (!(level instanceof ServerLevel) || isInside() || occupancy.status() == HollowStatus.NATURAL_PENDING
-                || fairy.isRemoved() || !fairy.isAlive() || fairy.isPassenger() || fairy.level() != level
+                || fairy.kind() != kind() || fairy.isRemoved() || !fairy.isAlive()
+                || fairy.isPassenger() || fairy.level() != level
                 || (fairy.hasHome() && (!fairy.home().dimension().equals(level.dimension())
                         || !fairy.home().pos().equals(worldPosition)))
                 || (occupancy.id() != null && !isResident(fairy.getUUID())) || !isEntranceClear()
@@ -123,7 +129,8 @@ public final class FairyHollowBlockEntity extends BlockEntity {
         } catch (RuntimeException error) {
             return failedRelease();
         }
-        if (!(entity instanceof DairatzEntity fairy) || !fairy.getUUID().equals(occupancy.id())) {
+        if (!(entity instanceof HousedFairyEntity fairy) || fairy.kind() != kind()
+                || !fairy.getUUID().equals(occupancy.id())) {
             return failedRelease();
         }
         Vec3 point = entrance();
@@ -164,7 +171,7 @@ public final class FairyHollowBlockEntity extends BlockEntity {
         }
         initializeNaturalResident(server);
         if (!isInside()) {
-            if (occupancy.id() != null && server.getEntity(occupancy.id()) instanceof DairatzEntity fairy) {
+            if (occupancy.id() != null && server.getEntity(occupancy.id()) instanceof HousedFairyEntity fairy) {
                 fairy.releaseHome();
             }
             occupancy = HollowResident.empty();
@@ -193,7 +200,7 @@ public final class FairyHollowBlockEntity extends BlockEntity {
         }
         if (!hasResident()) {
             AbstractFairyEntity passenger = headFairy(player);
-            if (passenger instanceof DairatzEntity fairy) {
+            if (passenger instanceof HousedFairyEntity fairy && fairy.kind() == kind()) {
                 if (!isEntranceClear()) {
                     message(player, "blocked");
                     return;
@@ -228,18 +235,18 @@ public final class FairyHollowBlockEntity extends BlockEntity {
             message(player, "head_full");
             return;
         }
-        DairatzEntity fairy;
+        HousedFairyEntity fairy;
         if (isInside()) {
             Entity preview = EntityType.loadEntityRecursive(
                     occupancy.snapshot(), server, EntitySpawnReason.LOAD, value -> value);
-            if (!(preview instanceof DairatzEntity candidate) || !candidate.isOwnedBy(player)) {
+            if (!(preview instanceof HousedFairyEntity candidate) || !candidate.isOwnedBy(player)) {
                 message(player, "not_owner");
                 return;
             }
             fairy = recallStoredResident().fairy();
         } else {
             Entity entity = occupancy.id() == null ? null : server.getEntity(occupancy.id());
-            if (!(entity instanceof DairatzEntity candidate)
+            if (!(entity instanceof HousedFairyEntity candidate)
                     || candidate.distanceToSqr(Vec3.atCenterOf(worldPosition)) > 256.0) {
                 message(player, "unavailable");
                 return;
@@ -274,10 +281,15 @@ public final class FairyHollowBlockEntity extends BlockEntity {
         if (occupancy.status() != HollowStatus.NATURAL_PENDING) {
             return;
         }
-        DairatzEntity fairy = ModEntities.dairatzEntity().get().create(server, EntitySpawnReason.NATURAL);
+        HousedFairyEntity fairy = switch (kind()) {
+            case STANDARD -> ModEntities.dairatzEntity().get().create(server, EntitySpawnReason.NATURAL);
+            case WINTER -> ModEntities.winterFairy().get().create(server, EntitySpawnReason.NATURAL);
+            default -> ModEntities.fairy(kind()).create(server, EntitySpawnReason.NATURAL);
+        };
         if (fairy == null) {
             return;
         }
+        fairy.setAppearance(kind().hasVariants() ? server.random.nextInt(2) : 0);
         fairy.assignHome(worldPosition);
         fairy.setPos(Vec3.atCenterOf(worldPosition));
         TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, server.registryAccess());
@@ -291,7 +303,7 @@ public final class FairyHollowBlockEntity extends BlockEntity {
         setChanged();
         if (level != null && !isRemoved()) {
             BlockState current = level.getBlockState(worldPosition);
-            if (current.is(ModHollows.oakHollow())) {
+            if (current.getBlock() instanceof FairyHollowBlock) {
                 level.setBlock(worldPosition, current.setValue(FairyHollowBlock.OCCUPIED, isInside()), 3);
             }
         }
@@ -301,12 +313,16 @@ public final class FairyHollowBlockEntity extends BlockEntity {
         if (level.getGameTime() % 20 != 0 || !(level instanceof ServerLevel server)) {
             return;
         }
-        hollow.initializeNaturalResident(server);
+        hollow.tickResident(server);
+    }
+
+    void tickResident(ServerLevel server) {
+        initializeNaturalResident(server);
         FairyRecoveryJournal.get(server.getServer()).applyHomeReleases(
-            GlobalPos.of(server.dimension(), pos), hollow
+            GlobalPos.of(server.dimension(), worldPosition), this
         );
-        if (hollow.isInside() && !FairyActivitySchedule.isRestTime(level)) {
-            hollow.letResidentOut();
+        if (isInside() && !FairyActivitySchedule.isRestTime(server, kind())) {
+            letResidentOut();
         }
     }
 

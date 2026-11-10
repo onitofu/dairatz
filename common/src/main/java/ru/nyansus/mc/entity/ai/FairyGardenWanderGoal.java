@@ -3,13 +3,13 @@ package ru.nyansus.mc.entity.ai;
 import java.util.EnumSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.goal.Goal;
-import ru.nyansus.mc.entity.DairatzEntity;
+import ru.nyansus.mc.entity.HousedFairyEntity;
 
 public final class FairyGardenWanderGoal extends Goal {
-    private final DairatzEntity fairy;
+    private final HousedFairyEntity fairy;
     private BlockPos destination;
 
-    public FairyGardenWanderGoal(DairatzEntity fairy) {
+    public FairyGardenWanderGoal(HousedFairyEntity fairy) {
         this.fairy = fairy;
         setFlags(EnumSet.of(Flag.MOVE));
     }

@@ -1,6 +1,9 @@
 package ru.nyansus.mc.registry;
 
+import java.util.EnumMap;
+import java.util.Map;
 import net.minecraft.core.component.DataComponents;
+import ru.nyansus.mc.entity.FairyKind;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.SpawnEggItem;
@@ -12,6 +15,17 @@ public final class ModItems {
     public static final String DAIRATZ_SPAWN_EGG_NAME = "dairatz_spawn_egg";
     public static final String WINTER_FAIRY_SPAWN_EGG_NAME = "winter_fairy_spawn_egg";
 
+    private static final Map<FairyKind, RegistryEntry<Item>> EGGS = new EnumMap<>(FairyKind.class);
+    private static final Map<FairyKind, RegistryEntry<Item>> PROJECTILES = new EnumMap<>(FairyKind.class);
+
+    public static Item egg(FairyKind kind) {
+        return EGGS.get(kind).get();
+    }
+
+    public static Item projectile(FairyKind kind) {
+        return PROJECTILES.get(kind).get();
+    }
+
     private static RegistryEntry<Item> furball;
     private static RegistryEntry<Item> iceFurball;
     private static RegistryEntry<Item> dairatzSpawnEgg;
@@ -22,7 +36,6 @@ public final class ModItems {
 
     public static void register(ContentRegistrar registrar) {
         ensureNotRegistered();
-
         furball = registrar.registerItem(
                 FURBALL_NAME,
                 key -> new Item(new Item.Properties().setId(key))
@@ -56,6 +69,15 @@ public final class ModItems {
                                 )
                         ))
         );
+
+        for (FairyKind kind : ModEntities.newKinds()) {
+            PROJECTILES.put(kind, registrar.registerItem(kind.id() + "_furball",
+                    key -> new Item(new Item.Properties().setId(key))));
+            EGGS.put(kind, registrar.registerItem(kind.id() + "_fairy_spawn_egg",
+                    key -> new SpawnEggItem(new Item.Properties().setId(key)
+                            .component(DataComponents.ENTITY_DATA,
+                            TypedEntityData.of(ModEntities.fairy(kind), new CompoundTag())))));
+        }
     }
 
     private static void ensureNotRegistered() {

@@ -29,7 +29,7 @@ public final class FairyRegressionGameTests {
         fairy.setNoAi(true);
         test.assertTrue(hollow.enter(fairy), "Probe setup failed: cannot settle fairy");
         test.runAfterDelay(2, () -> {
-            DairatzEntity outside = hollow.letResidentOut().fairy();
+            DairatzEntity outside = (DairatzEntity) hollow.letResidentOut().fairy();
             test.assertTrue(outside != null, "Probe setup failed: cannot release fairy");
             ServerLevel nether = test.getLevel().getServer().getLevel(Level.NETHER);
             DairatzEntity moved = (DairatzEntity) outside.teleport(new TeleportTransition(

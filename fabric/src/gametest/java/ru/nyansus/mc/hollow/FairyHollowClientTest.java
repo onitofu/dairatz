@@ -78,7 +78,7 @@ public final class FairyHollowClientTest implements FabricClientGameTest {
                 if (hollow == null || !hollow.isInside() || !hollow.isResident(resident)) {
                     throw new AssertionError("A real world restart lost the stored resident");
                 }
-                DairatzEntity fairy = hollow.letResidentOut().fairy();
+                DairatzEntity fairy = (DairatzEntity) hollow.letResidentOut().fairy();
                 ServerPlayer owner = server.getPlayerList().getPlayers().getFirst();
                 verifyResident(fairy, owner, resident);
                 server.overworld().setDayTime(1000);

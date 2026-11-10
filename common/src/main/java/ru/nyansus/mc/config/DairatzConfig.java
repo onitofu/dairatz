@@ -34,14 +34,7 @@ public final class DairatzConfig {
         try {
             JsonObject supplied = JsonParser.parseString(Files.readString(configPath)).getAsJsonObject();
             JsonObject merged = GSON.toJsonTree(DairatzSettings.DEFAULTS).getAsJsonObject();
-            for (String key : merged.keySet()) {
-                if (supplied.has(key)) {
-                    if (supplied.get(key).isJsonNull()) {
-                        throw new InvalidSettingsException(key + " must not be null");
-                    }
-                    merged.add(key, supplied.get(key));
-                }
-            }
+            merge(merged, supplied);
             DairatzSettings candidate = GSON.fromJson(merged, DairatzSettings.class);
             settings = candidate;
             return true;
@@ -56,6 +49,25 @@ public final class DairatzConfig {
             }
             LOGGER.warn("Rejected Dairatz configuration; keeping previous settings: {}", reason);
             return false;
+        }
+    }
+
+    private static void merge(JsonObject defaults, JsonObject supplied) {
+        for (String key : defaults.keySet()) {
+            if (!supplied.has(key)) {
+                continue;
+            }
+            if (supplied.get(key).isJsonNull()) {
+                throw new InvalidSettingsException(key + " must not be null");
+            }
+            if (defaults.get(key).isJsonObject()) {
+                if (!supplied.get(key).isJsonObject()) {
+                    throw new InvalidSettingsException(key + " must be an object");
+                }
+                merge(defaults.getAsJsonObject(key), supplied.getAsJsonObject(key));
+            } else {
+                defaults.add(key, supplied.get(key));
+            }
         }
     }
 

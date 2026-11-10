@@ -13,6 +13,8 @@ import net.neoforged.neoforge.common.world.BiomeModifier;
 import net.neoforged.neoforge.common.world.ModifiableBiomeInfo;
 import ru.nyansus.mc.config.DairatzConfig;
 import ru.nyansus.mc.registry.ModEntities;
+import ru.nyansus.mc.registry.FairySpawns;
+import ru.nyansus.mc.entity.FairyKind;
 
 final class ConfiguredFairySpawnsBiomeModifier implements BiomeModifier {
     private static final ConfiguredFairySpawnsBiomeModifier INSTANCE =
@@ -55,6 +57,13 @@ final class ConfiguredFairySpawnsBiomeModifier implements BiomeModifier {
                     DairatzConfig.current().winterSpawnWeight(),
                     DairatzConfig.current().winterMinGroup(),
                     DairatzConfig.current().winterMaxGroup());
+        }
+
+        for (FairyKind kind : ModEntities.newKinds()) {
+            if (kind.settings().spawnWeight() > 0 && FairySpawns.biomes(kind).stream().anyMatch(biome::is)) {
+                addSpawn(builder, ModEntities.fairy(kind), kind.settings().spawnWeight(),
+                        kind.settings().minGroup(), kind.settings().maxGroup());
+            }
         }
     }
 

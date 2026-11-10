@@ -13,12 +13,17 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import ru.nyansus.mc.config.DairatzConfig;
 
-public class WinterFairyEntity extends AbstractFairyEntity {
+public class WinterFairyEntity extends HousedFairyEntity {
     private static final int FREEZE_AROUND_INTERVAL = 20;
     private static final int FREEZE_AROUND_Y_RANGE = 2;
 
     public WinterFairyEntity(EntityType<? extends TamableAnimal> entityType, Level level) {
         super(entityType, level);
+    }
+
+    @Override
+    public FairyKind kind() {
+        return FairyKind.WINTER;
     }
 
     @Override

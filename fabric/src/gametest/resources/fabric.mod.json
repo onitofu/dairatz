@@ -8,12 +8,22 @@
     "fabric-gametest": [
       "ru.nyansus.mc.hollow.FairyHollowGameTests",
       "ru.nyansus.mc.hollow.FairyRegressionGameTests",
+      "ru.nyansus.mc.entity.ai.FairyPollinationGameTests",
       "ru.nyansus.mc.hollow.FairyRecoveryGameTests",
-      "ru.nyansus.mc.config.DairatzConfigGameTests"
+      "ru.nyansus.mc.config.DairatzConfigGameTests",
+      "ru.nyansus.mc.entity.FairyAbilityGameTests",
+      "ru.nyansus.mc.hollow.FairySpeciesGameTests",
+      "ru.nyansus.mc.entity.PaleDetectionGameTests",
+      "ru.nyansus.mc.hollow.FairyWorldgenGameTests",
+      "ru.nyansus.mc.entity.ai.FairyHabitsGameTests"
     ],
     "fabric-client-gametest": [
       "ru.nyansus.mc.hollow.FairyHollowClientTest",
-      "ru.nyansus.mc.hollow.FairyRecoveryClientTest"
+      "ru.nyansus.mc.hollow.FairyRecoveryClientTest",
+      "ru.nyansus.mc.entity.ai.FairyPollinationClientTest",
+      "ru.nyansus.mc.entity.FairySpeciesClientTest",
+      "ru.nyansus.mc.entity.FairyParticlesClientTest",
+      "ru.nyansus.mc.entity.ai.FairyHabitsClientTest"
     ]
   },
   "depends": {

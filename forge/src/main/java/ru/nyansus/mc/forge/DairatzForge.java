@@ -34,6 +34,8 @@ import ru.nyansus.mc.Dairatz;
 import ru.nyansus.mc.entity.AbstractFairyEntity;
 import ru.nyansus.mc.entity.DairatzEntity;
 import ru.nyansus.mc.entity.WinterFairyEntity;
+import ru.nyansus.mc.entity.FairyKind;
+import ru.nyansus.mc.entity.NewFairyEntity;
 import ru.nyansus.mc.hollow.FairyRecoveryJournal;
 import ru.nyansus.mc.registry.ModEntities;
 import ru.nyansus.mc.registry.ModHollows;
@@ -57,6 +59,7 @@ public final class DairatzForge {
 
         Dairatz.initialize(registrar, FMLPaths.CONFIGDIR.get());
         registrar.register(modBusGroup);
+        ForgeFairyNetwork.register();
         BIOME_MODIFIERS.register(modBusGroup);
 
         ServerTickEvent.Post.BUS.addListener(event -> FairyRecoveryJournal.tick(event.server()));
@@ -76,6 +79,10 @@ public final class DairatzForge {
     private static void registerAttributes(EntityAttributeCreationEvent event) {
         event.put(ModEntities.dairatzEntity().get(), DairatzEntity.createAttributes().build());
         event.put(ModEntities.winterFairy().get(), WinterFairyEntity.createAttributes().build());
+
+        for (FairyKind kind : ModEntities.newKinds()) {
+            event.put(ModEntities.fairy(kind), NewFairyEntity.createAttributes(kind).build());
+        }
     }
 
     private static void registerSpawnPlacements(SpawnPlacementRegisterEvent event) {
@@ -91,17 +98,30 @@ public final class DairatzForge {
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 AbstractFairyEntity::checkFairySpawnRules,
                 SpawnPlacementRegisterEvent.Operation.REPLACE);
+
+        for (FairyKind kind : ModEntities.newKinds()) {
+            event.register(ModEntities.fairy(kind), SpawnPlacementTypes.NO_RESTRICTIONS,
+                    Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, AbstractFairyEntity::checkFairySpawnRules,
+                    SpawnPlacementRegisterEvent.Operation.REPLACE);
+        }
     }
 
     private static void addCreativeItems(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.NATURAL_BLOCKS) {
             event.accept(ModHollows.oakHollowItem());
+            for (FairyKind kind : FairyKind.values()) {
+                if (kind != FairyKind.STANDARD && kind != FairyKind.ENDER) {
+                    event.accept(ModHollows.hollowItem(kind));
+                }
+            }
         } else if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS) {
             event.accept(ModItems.dairatzSpawnEgg());
             event.accept(ModItems.winterFairySpawnEgg());
+            ModEntities.newKinds().forEach(kind -> event.accept(ModItems.egg(kind)));
         } else if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
             event.accept(ModItems.furball());
             event.accept(ModItems.iceFurball());
+            ModEntities.newKinds().forEach(kind -> event.accept(ModItems.projectile(kind)));
         }
     }
 

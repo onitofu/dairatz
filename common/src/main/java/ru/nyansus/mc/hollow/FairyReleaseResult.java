@@ -1,8 +1,8 @@
 package ru.nyansus.mc.hollow;
 
-import ru.nyansus.mc.entity.DairatzEntity;
+import ru.nyansus.mc.entity.HousedFairyEntity;
 
-public record FairyReleaseResult(FairyReleaseStatus status, DairatzEntity fairy) {
+public record FairyReleaseResult(FairyReleaseStatus status, HousedFairyEntity fairy) {
     public FairyReleaseResult {
         if ((status == FairyReleaseStatus.RELEASED) != (fairy != null)) {
             throw new IllegalArgumentException("Inconsistent fairy release result");
@@ -13,7 +13,7 @@ public record FairyReleaseResult(FairyReleaseStatus status, DairatzEntity fairy)
         return status == FairyReleaseStatus.RELEASED;
     }
 
-    public static FairyReleaseResult released(DairatzEntity fairy) {
+    public static FairyReleaseResult released(HousedFairyEntity fairy) {
         return new FairyReleaseResult(FairyReleaseStatus.RELEASED, fairy);
     }
 

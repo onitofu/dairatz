@@ -1,0 +1,18 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "ru.nyansus.mc.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "FairyLivingMixin",
+    "FairyBlockLootMixin",
+    "FairyEntityLootMixin",
+    "FairyItemLootMixin"
+  ],
+  "client": [
+    "PaleGlowMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

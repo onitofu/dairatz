@@ -19,13 +19,24 @@ public record DairatzSettings(
     int winterMinGroup,
     int winterMaxGroup,
     double healAmount,
-    int tameChance
+    int tameChance,
+    FairySpeciesSettings jungle,
+    FairySpeciesSettings cherry,
+    FairySpeciesSettings pale,
+    FairySpeciesSettings ender
 ) {
     public static final DairatzSettings DEFAULTS = new DairatzSettings(
-        16.0, 2.0, 60, 0.4, 10, 2, 4, 16.0, 1.0, 60, 0.4, 60, 2, 2, 8, 2, 3, 4.0, 3
+        16.0, 2.0, 60, 0.4, 10, 2, 4, 16.0, 1.0, 60, 0.4, 60, 2, 2, 8, 2, 3, 4.0, 3,
+        new FairySpeciesSettings(16, 2, 60, 0.4, 8, 1, 2),
+        new FairySpeciesSettings(16, 1, 60, 0.4, 8, 1, 2),
+        new FairySpeciesSettings(16, 2, 60, 0.4, 4, 1, 2),
+        new FairySpeciesSettings(16, 2, 60, 0.4, 4, 1, 2)
     );
 
     public DairatzSettings {
+        if (jungle == null || cherry == null || pale == null || ender == null) {
+            throw new InvalidSettingsException("Fairy species settings must not be null");
+        }
         range("fairyHealth", fairyHealth, 1, 1024);
         range("furballDamage", furballDamage, 0, Float.MAX_VALUE);
         range("fireRate", fireRate, 1, Integer.MAX_VALUE);

@@ -1,6 +1,9 @@
 package ru.nyansus.mc.entity;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.DifficultyInstance;
+import net.minecraft.world.entity.SpawnGroupData;
+import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -39,7 +42,11 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import ru.nyansus.mc.config.DairatzConfig;
+import ru.nyansus.mc.registry.ModEntities;
+import net.minecraft.world.level.block.Blocks;
 import ru.nyansus.mc.entity.ai.FairyFollowOwnerGoal;
+import ru.nyansus.mc.entity.ai.FairyHabitsGoal;
+import ru.nyansus.mc.entity.ai.FairyVisitPatientGoal;
 import ru.nyansus.mc.entity.ai.FairyOwnerAttackGoal;
 import ru.nyansus.mc.entity.ai.FairyOwnerHurtByGoal;
 import ru.nyansus.mc.entity.ai.FairyRangedCombatGoal;
@@ -84,12 +91,40 @@ public abstract class AbstractFairyEntity extends TamableAnimal implements Range
             AbstractFairyEntity.class, EntityDataSerializers.BOOLEAN
     );
 
+    private static final EntityDataAccessor<Integer> APPEARANCE = SynchedEntityData.defineId(
+            AbstractFairyEntity.class, EntityDataSerializers.INT
+    );
+
+    private static final EntityDataAccessor<Boolean> RESTING = SynchedEntityData.defineId(
+            AbstractFairyEntity.class, EntityDataSerializers.BOOLEAN
+    );
+
     public final AnimationState idleAnimationState = new AnimationState();
     private int mountCooldown = 0;
 
     protected AbstractFairyEntity(EntityType<? extends TamableAnimal> entityType, Level level) {
         super(entityType, level);
         this.moveControl = new FlyingMoveControl(this, FLY_CONTROL_MAX_TURN, true);
+    }
+
+    public FairyKind kind() {
+        return FairyKind.STANDARD;
+    }
+
+    public int appearance() {
+        return entityData.get(APPEARANCE);
+    }
+
+    public void setAppearance(int appearance) {
+        entityData.set(APPEARANCE, kind().hasVariants() && appearance == 1 ? 1 : 0);
+    }
+
+    @Override
+    public SpawnGroupData finalizeSpawn(
+            ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, SpawnGroupData group
+    ) {
+        setAppearance(kind().hasVariants() ? random.nextInt(2) : 0);
+        return super.finalizeSpawn(level, difficulty, reason, group);
     }
 
     protected abstract Item getTameItem();
@@ -107,7 +142,9 @@ public abstract class AbstractFairyEntity extends TamableAnimal implements Range
         goalSelector.addGoal(3, new FairyFollowOwnerGoal(
             this, FOLLOW_OWNER_SPEED, FOLLOW_START_DISTANCE, FOLLOW_STOP_DISTANCE
         ));
-        goalSelector.addGoal(5, new FairyWildWanderGoal(this, WANDER_SPEED));
+        goalSelector.addGoal(4, new FairyVisitPatientGoal(this));
+        goalSelector.addGoal(5, new FairyHabitsGoal(this));
+        goalSelector.addGoal(6, new FairyWildWanderGoal(this, WANDER_SPEED));
         goalSelector.addGoal(6,
                 new LookAtPlayerGoal(this, Player.class, LOOK_AT_PLAYER_RANGE));
         goalSelector.addGoal(7, new RandomLookAroundGoal(this));
@@ -130,6 +167,8 @@ public abstract class AbstractFairyEntity extends TamableAnimal implements Range
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(ON_HEAD, false);
+        builder.define(APPEARANCE, 0);
+        builder.define(RESTING, false);
     }
 
     public boolean hasHome() {
@@ -139,12 +178,21 @@ public abstract class AbstractFairyEntity extends TamableAnimal implements Range
     public void releaseHome() {
     }
 
+    public boolean isResting() {
+        return entityData.get(RESTING);
+    }
+
+    public void setResting(boolean resting) {
+        entityData.set(RESTING, resting);
+    }
+
     public boolean isOnHead() {
         return entityData.get(ON_HEAD);
     }
 
     public void setOnHead(boolean onHead) {
         entityData.set(ON_HEAD, onHead);
+        setResting(false);
         if (onHead) {
             mountCooldown = MOUNT_COOLDOWN_TICKS;
         }
@@ -153,6 +201,7 @@ public abstract class AbstractFairyEntity extends TamableAnimal implements Range
     @Override
     public void tick() {
         super.tick();
+        FairyAbilities.tick(this);
         if (mountCooldown > 0) {
             mountCooldown--;
         }
@@ -195,7 +244,8 @@ public abstract class AbstractFairyEntity extends TamableAnimal implements Range
         }
 
         if (level().isClientSide()) {
-            if (isOnHead()) {
+            FairyAmbientParticles.tick(this);
+            if (isOnHead() || isResting()) {
                 idleAnimationState.stop();
             } else if (!idleAnimationState.isStarted()) {
                 idleAnimationState.start(tickCount);
@@ -354,12 +404,14 @@ public abstract class AbstractFairyEntity extends TamableAnimal implements Range
     protected void addAdditionalSaveData(ValueOutput output) {
         super.addAdditionalSaveData(output);
         output.putBoolean("OnHead", isOnHead());
+        output.putInt("Appearance", appearance());
     }
 
     @Override
     protected void readAdditionalSaveData(ValueInput input) {
         super.readAdditionalSaveData(input);
         setOnHead(input.getBooleanOr("OnHead", false));
+        setAppearance(input.getIntOr("Appearance", 0));
     }
 
     @Override
@@ -379,6 +431,9 @@ public abstract class AbstractFairyEntity extends TamableAnimal implements Range
     public static boolean checkFairySpawnRules(
             EntityType<? extends AbstractFairyEntity> type, LevelAccessor level,
             EntitySpawnReason spawnReason, BlockPos pos, RandomSource random) {
+        if (type == ModEntities.fairy(FairyKind.ENDER)) {
+            return level.getBlockState(pos.below()).is(Blocks.END_STONE);
+        }
         return level.getBlockState(pos.below()).is(BlockTags.ANIMALS_SPAWNABLE_ON);
     }
 }

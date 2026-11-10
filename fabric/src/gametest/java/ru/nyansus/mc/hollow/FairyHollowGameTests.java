@@ -72,7 +72,7 @@ public final class FairyHollowGameTests {
                 "A second fairy must not replace the first");
         UUID id = first.getUUID();
         test.runAfterDelay(2, () -> {
-            DairatzEntity outside = hollow.letResidentOut().fairy();
+            DairatzEntity outside = (DairatzEntity) hollow.letResidentOut().fairy();
             test.assertTrue(outside != null && hollow.isResident(id) && !hollow.isInside(),
                     "Leaving the home must preserve the reservation");
             test.assertTrue(!hollow.enter(second), "An outside resident still owns the home");
@@ -168,7 +168,7 @@ public final class FairyHollowGameTests {
         fairy.assignHome(hollow.getBlockPos());
         test.assertTrue(hollow.enter(fairy), "Resident must enter");
         test.runAfterDelay(2, () -> {
-            DairatzEntity resident = hollow.letResidentOut().fairy();
+            DairatzEntity resident = (DairatzEntity) hollow.letResidentOut().fairy();
             test.assertTrue(resident != null, "Resident must leave during daytime");
             owner.setPos(owner.getX() + 80, owner.getY(), owner.getZ());
             test.runAfterDelay(60, () -> {
@@ -186,7 +186,7 @@ public final class FairyHollowGameTests {
         DairatzEntity fairy = fairy(test, hollow);
         test.assertTrue(hollow.enter(fairy), "Resident must enter");
         test.runAfterDelay(2, () -> {
-            DairatzEntity resident = hollow.letResidentOut().fairy();
+            DairatzEntity resident = (DairatzEntity) hollow.letResidentOut().fairy();
             test.assertTrue(resident != null, "Resident must leave");
             resident.kill(test.getLevel());
             test.assertTrue(!hollow.hasResident(), "Death must free the home");
@@ -200,7 +200,7 @@ public final class FairyHollowGameTests {
         DairatzEntity fairy = fairy(test, hollow);
         test.assertTrue(hollow.enter(fairy), "Resident must enter");
         test.runAfterDelay(2, () -> {
-            DairatzEntity resident = hollow.letResidentOut().fairy();
+            DairatzEntity resident = (DairatzEntity) hollow.letResidentOut().fairy();
             test.assertTrue(resident != null && !resident.wantsShelter(), "Knock must grant ten seconds outside");
             resident.stayOutside();
             test.succeed();
@@ -213,7 +213,7 @@ public final class FairyHollowGameTests {
         DairatzEntity fairy = fairy(test, hollow);
         test.assertTrue(hollow.enter(fairy), "Resident must enter");
         test.runAfterDelay(2, () -> {
-            DairatzEntity resident = hollow.letResidentOut().fairy();
+            DairatzEntity resident = (DairatzEntity) hollow.letResidentOut().fairy();
             test.assertTrue(resident != null, "Resident must leave on a knock");
             resident.setNoAi(true);
             test.runAfterDelay(205, () -> {
@@ -267,7 +267,7 @@ public final class FairyHollowGameTests {
         DairatzEntity fairy = fairy(test, hollow);
         test.assertTrue(hollow.enter(fairy), "Resident must enter");
         test.runAfterDelay(2, () -> {
-            DairatzEntity outside = hollow.letResidentOut().fairy();
+            DairatzEntity outside = (DairatzEntity) hollow.letResidentOut().fairy();
             test.assertTrue(outside != null, "Resident must leave");
             TagValueOutput output = TagValueOutput.createWithContext(
                     ProblemReporter.DISCARDING, test.getLevel().registryAccess());
@@ -348,7 +348,7 @@ public final class FairyHollowGameTests {
         test.setBlock(HOME.above(5), Blocks.OAK_LEAVES);
         ServerLevel level = test.getLevel();
         BlockPos base = test.absolutePos(HOME);
-        OakHollowFeature feature = new OakHollowFeature();
+        FairyHollowFeature feature = new FairyHollowFeature();
         test.assertTrue(feature.place(NoneFeatureConfiguration.INSTANCE, level,
                 level.getChunkSource().getGenerator(), RandomSource.create(0), base),
                 "A fixed seed must decorate the eligible oak");
@@ -374,7 +374,7 @@ public final class FairyHollowGameTests {
         test.setBlock(HOME.above(5), Blocks.BIRCH_LEAVES);
         ServerLevel level = test.getLevel();
         BlockPos base = test.absolutePos(HOME);
-        OakHollowFeature feature = new OakHollowFeature();
+        FairyHollowFeature feature = new FairyHollowFeature();
         test.assertTrue(!feature.place(NoneFeatureConfiguration.INSTANCE, level,
                 level.getChunkSource().getGenerator(), RandomSource.create(0), base), "Birch must remain unchanged");
         for (int y = 0; y < 5; y++) {
@@ -391,9 +391,10 @@ public final class FairyHollowGameTests {
         for (int x = 1; x <= 6; x++) {
             for (int z = 1; z <= 6; z++) {
                 test.setBlock(new BlockPos(x, 1, z), Blocks.DIRT);
-                test.setBlock(new BlockPos(x, 2, z), Blocks.POPPY);
+                test.setBlock(new BlockPos(x, 2, z), Blocks.AIR);
             }
         }
+        test.setBlock(new BlockPos(6, 2, 6), Blocks.POPPY);
         BlockPos crop = new BlockPos(2, 2, 2);
         test.setBlock(crop.below(), Blocks.FARMLAND);
         test.setBlock(crop, Blocks.WHEAT.defaultBlockState());

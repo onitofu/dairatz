@@ -4,13 +4,13 @@ import java.util.EnumSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.phys.Vec3;
-import ru.nyansus.mc.entity.DairatzEntity;
+import ru.nyansus.mc.entity.HousedFairyEntity;
 import ru.nyansus.mc.hollow.FairyHollowBlockEntity;
 
 public final class FairyReturnHomeGoal extends Goal {
-    private final DairatzEntity fairy;
+    private final HousedFairyEntity fairy;
 
-    public FairyReturnHomeGoal(DairatzEntity fairy) {
+    public FairyReturnHomeGoal(HousedFairyEntity fairy) {
         this.fairy = fairy;
         setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
     }

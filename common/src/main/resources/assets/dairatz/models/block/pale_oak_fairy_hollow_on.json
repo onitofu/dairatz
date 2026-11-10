@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "down": "minecraft:block/pale_oak_log_top",
+    "up": "minecraft:block/pale_oak_log_top",
+    "north": "dairatz:block/pale_oak_fairy_hollow_on",
+    "south": "minecraft:block/pale_oak_log",
+    "east": "minecraft:block/pale_oak_log",
+    "west": "minecraft:block/pale_oak_log",
+    "particle": "minecraft:block/pale_oak_log"
+  }
+}

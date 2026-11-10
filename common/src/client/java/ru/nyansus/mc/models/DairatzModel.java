@@ -128,5 +128,6 @@ public class DairatzModel extends EntityModel<FairyRenderState> {
     public void setupAnim(FairyRenderState state) {
         super.setupAnim(state);
         idleAnimation.apply(state.idleAnimationState, state.ageInTicks);
+        FairyRestPose.apply(main, state);
     }
 }

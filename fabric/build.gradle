@@ -98,3 +98,7 @@ loom.runs.clientGameTest {
     vmArg '-Xmx2G'
     vmArg '-Dfabric.client.gametest.disableNetworkSynchronizer=true'
 }
+
+loom.runs.server {
+    runDir 'run/server'
+}

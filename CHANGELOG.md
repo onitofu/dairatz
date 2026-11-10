@@ -1,9 +1,25 @@
 # Changelog
 
-## 1.2.1 (unreleased)
+## 2.0.0 (unreleased)
+
+- Added Jungle, Cherry, Pale, and Ender fairies with species-specific spawn eggs and projectiles.
+- Added two persistent cosmetic appearances each for Jungle and Pale fairies.
+- Added subtle flight particles matching each fairy species.
+- Added species-specific idle habits, resting poses, night patrol posts, and safe Ender curiosity blinks.
+- Cherry residents now approach their patients before healing; idle behavior yields to combat and useful work.
+- Kept original fairies and items first in registration and creative tabs, with standard item tooltips.
+- Added spruce, cherry, jungle, and pale oak fairy hollows with species-specific residents.
+- Jungle fairies poison enemies, reduce new poison duration while mounted, and tend cocoa and berry bushes.
+- Cherry fairies heal their owner and owned pets outside combat, with shared healing cooldowns.
+- Pale fairies apply weakness and privately reveal nearby threats to their owner; residents patrol at night.
+- Ender fairies attract their owner's mined and hunted loot while mounted and evade melee hits after taking damage.
+- Added persistent loot provenance, bounded private threat snapshots, and configuration sections for new species.
+- Preserved existing entity identifiers, oak hollow saves, and resident recovery data.
 
 - Added oak fairy hollows that generate in natural oak trees in new Overworld chunks.
 - Regular fairies can live in hollows, shelter at night or in rain, and pollinate nearby plants.
+- Fairies carry pollen from flowers to immature crops, with particles showing their work and successful growth.
+- Pollination no longer spreads grass or duplicates decorative flowers, and a single garden flower is found reliably.
 - Added occupied and empty hollow appearances, resident interaction messages, and Silk Touch drops.
 - Preserved fairy identity, ownership, names, and health when entering or leaving a hollow.
 - Added persistent recovery when a blocked entrance prevents a resident from escaping a broken hollow.
