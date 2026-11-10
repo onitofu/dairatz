@@ -1,0 +1,6 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#minecraft:is_overworld",
+  "features": "dairatz:oak_fairy_hollow",
+  "step": "top_layer_modification"
+}

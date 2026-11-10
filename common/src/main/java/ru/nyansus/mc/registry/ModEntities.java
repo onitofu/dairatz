@@ -1,6 +1,12 @@
 package ru.nyansus.mc.registry;
 
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 import net.minecraft.world.entity.EntityType;
+import ru.nyansus.mc.entity.FairyKind;
+import ru.nyansus.mc.entity.NewFairyEntity;
+import ru.nyansus.mc.entity.VariantFurballEntity;
 import net.minecraft.world.entity.MobCategory;
 import ru.nyansus.mc.entity.DairatzEntity;
 import ru.nyansus.mc.entity.FurballEntity;
@@ -23,6 +29,32 @@ public final class ModEntities {
     private static final int PROJECTILE_TRACKING_RANGE = 4;
     private static final int PROJECTILE_UPDATE_INTERVAL = 10;
 
+    private static final Map<FairyKind, RegistryEntry<EntityType<NewFairyEntity>>> FAIRIES =
+            new EnumMap<>(FairyKind.class);
+    private static final Map<FairyKind, RegistryEntry<EntityType<VariantFurballEntity>>> PROJECTILES =
+            new EnumMap<>(FairyKind.class);
+
+    public static List<FairyKind> newKinds() {
+        return List.of(FairyKind.JUNGLE, FairyKind.CHERRY, FairyKind.PALE, FairyKind.ENDER);
+    }
+
+    public static EntityType<NewFairyEntity> fairy(FairyKind kind) {
+        return FAIRIES.get(kind).get();
+    }
+
+    public static EntityType<VariantFurballEntity> projectile(FairyKind kind) {
+        return PROJECTILES.get(kind).get();
+    }
+
+    public static FairyKind kindOf(EntityType<?> type) {
+        for (FairyKind kind : newKinds()) {
+            if (fairy(kind) == type || projectile(kind) == type) {
+                return kind;
+            }
+        }
+        throw new IllegalArgumentException("Unregistered fairy type");
+    }
+
     private static RegistryEntry<EntityType<DairatzEntity>> dairatzEntity;
     private static RegistryEntry<EntityType<FurballEntity>> furball;
     private static RegistryEntry<EntityType<WinterFairyEntity>> winterFairy;
@@ -33,7 +65,6 @@ public final class ModEntities {
 
     public static void register(ContentRegistrar registrar) {
         ensureNotRegistered();
-
         dairatzEntity = registrar.registerEntityType(
                 DAIRATZ_NAME,
                 key -> EntityType.Builder.of(DairatzEntity::new, MobCategory.CREATURE)
@@ -69,6 +100,18 @@ public final class ModEntities {
                         .updateInterval(PROJECTILE_UPDATE_INTERVAL)
                         .build(key)
         );
+
+        for (FairyKind kind : newKinds()) {
+            FAIRIES.put(kind, registrar.registerEntityType(kind.id() + "_fairy",
+                    key -> EntityType.Builder.of(NewFairyEntity::new, MobCategory.CREATURE)
+                            .sized(FAIRY_HITBOX_WIDTH, FAIRY_HITBOX_HEIGHT)
+                            .clientTrackingRange(FAIRY_TRACKING_RANGE).build(key)));
+            PROJECTILES.put(kind, registrar.registerEntityType(kind.id() + "_furball",
+                    key -> EntityType.Builder.<VariantFurballEntity>of(VariantFurballEntity::new, MobCategory.MISC)
+                            .sized(PROJECTILE_HITBOX_WIDTH, PROJECTILE_HITBOX_HEIGHT)
+                            .clientTrackingRange(PROJECTILE_TRACKING_RANGE)
+                            .updateInterval(PROJECTILE_UPDATE_INTERVAL).build(key)));
+        }
     }
 
     private static void ensureNotRegistered() {

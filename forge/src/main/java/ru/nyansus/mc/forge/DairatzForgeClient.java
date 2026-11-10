@@ -2,9 +2,14 @@ package ru.nyansus.mc.forge;
 
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
 import net.minecraftforge.client.event.EntityRenderersEvent;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import ru.nyansus.mc.models.DairatzModel;
 import ru.nyansus.mc.models.WinterFairyModel;
 import ru.nyansus.mc.registry.ModEntities;
+import ru.nyansus.mc.network.FairyNetwork;
+import ru.nyansus.mc.renderer.PaleClientState;
+import ru.nyansus.mc.entity.FairyKind;
+import ru.nyansus.mc.renderer.NewFairyRenderer;
 import ru.nyansus.mc.renderer.DairatzRenderer;
 import ru.nyansus.mc.renderer.WinterFairyRenderer;
 
@@ -13,6 +18,8 @@ final class DairatzForgeClient {
     }
 
     static void registerEventListeners() {
+        FairyNetwork.installReceiver(PaleClientState::receive);
+        ClientPlayerNetworkEvent.LoggingOut.BUS.addListener(event -> PaleClientState.clear());
         EntityRenderersEvent.RegisterLayerDefinitions.BUS.addListener(
                 DairatzForgeClient::registerLayers);
         EntityRenderersEvent.RegisterRenderers.BUS.addListener(
@@ -33,5 +40,10 @@ final class DairatzForgeClient {
         event.registerEntityRenderer(ModEntities.furball().get(), ThrownItemRenderer::new);
         event.registerEntityRenderer(
                 ModEntities.iceFurball().get(), ThrownItemRenderer::new);
+
+        for (FairyKind kind : ModEntities.newKinds()) {
+            event.registerEntityRenderer(ModEntities.fairy(kind), NewFairyRenderer::new);
+            event.registerEntityRenderer(ModEntities.projectile(kind), ThrownItemRenderer::new);
+        }
     }
 }

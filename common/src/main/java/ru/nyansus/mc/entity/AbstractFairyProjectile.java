@@ -3,6 +3,7 @@ package ru.nyansus.mc.entity;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
 import net.minecraft.world.item.ItemStack;
@@ -27,9 +28,21 @@ public abstract class AbstractFairyProjectile extends ThrowableItemProjectile {
             return true;
         }
         Entity shooter = getOwner();
-        return target instanceof Player player
-                && shooter instanceof AbstractFairyEntity fairy
-                && fairy.isOwnedBy(player);
+        if (shooter instanceof AbstractFairyEntity fairy && fairy.isAlliedTo(target)) {
+            return true;
+        }
+        if (shooter instanceof AbstractFairyEntity fairy) {
+            if (target instanceof OwnableEntity pet && pet.getOwnerReference() != null
+                    && fairy.getOwnerReference() != null
+                    && pet.getOwnerReference().getUUID().equals(fairy.getOwnerReference().getUUID())) {
+                return true;
+            }
+            if (target instanceof Player player) {
+                return fairy.isOwnedBy(player)
+                        || fairy.getOwner() instanceof Player owner && !owner.canHarmPlayer(player);
+            }
+        }
+        return false;
     }
 
     @Override

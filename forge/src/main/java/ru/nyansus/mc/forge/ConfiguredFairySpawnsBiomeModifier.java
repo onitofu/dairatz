@@ -13,6 +13,8 @@ import net.minecraftforge.common.world.BiomeModifier;
 import net.minecraftforge.common.world.ModifiableBiomeInfo;
 import ru.nyansus.mc.config.DairatzConfig;
 import ru.nyansus.mc.registry.ModEntities;
+import ru.nyansus.mc.registry.FairySpawns;
+import ru.nyansus.mc.entity.FairyKind;
 
 final class ConfiguredFairySpawnsBiomeModifier implements BiomeModifier {
     private static final ConfiguredFairySpawnsBiomeModifier INSTANCE =
@@ -40,21 +42,28 @@ final class ConfiguredFairySpawnsBiomeModifier implements BiomeModifier {
         if (phase != Phase.ADD) {
             return;
         }
-        if (matches(biome, DAIRATZ_BIOMES)) {
+        if (DairatzConfig.current().dairatzSpawnWeight() > 0 && matches(biome, DAIRATZ_BIOMES)) {
             addSpawn(
                     builder,
                     ModEntities.dairatzEntity().get(),
-                    DairatzConfig.dairatzSpawnWeight,
-                    DairatzConfig.dairatzMinGroup,
-                    DairatzConfig.dairatzMaxGroup);
+                    DairatzConfig.current().dairatzSpawnWeight(),
+                    DairatzConfig.current().dairatzMinGroup(),
+                    DairatzConfig.current().dairatzMaxGroup());
         }
-        if (matches(biome, WINTER_BIOMES)) {
+        if (DairatzConfig.current().winterSpawnWeight() > 0 && matches(biome, WINTER_BIOMES)) {
             addSpawn(
                     builder,
                     ModEntities.winterFairy().get(),
-                    DairatzConfig.winterSpawnWeight,
-                    DairatzConfig.winterMinGroup,
-                    DairatzConfig.winterMaxGroup);
+                    DairatzConfig.current().winterSpawnWeight(),
+                    DairatzConfig.current().winterMinGroup(),
+                    DairatzConfig.current().winterMaxGroup());
+        }
+
+        for (FairyKind kind : ModEntities.newKinds()) {
+            if (kind.settings().spawnWeight() > 0 && FairySpawns.biomes(kind).stream().anyMatch(biome::is)) {
+                addSpawn(builder, ModEntities.fairy(kind), kind.settings().spawnWeight(),
+                        kind.settings().minGroup(), kind.settings().maxGroup());
+            }
         }
     }
 

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:all_of",
+  "definitions": [
+    {
+      "type": "minecraft:time_of_day",
+      "time": 1000
+    },
+    {
+      "type": "minecraft:weather",
+      "weather": "rain"
+    },
+    {
+      "type": "minecraft:game_rules",
+      "rules": {
+        "minecraft:random_tick_speed": 0
+      }
+    }
+  ]
+}

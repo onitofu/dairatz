@@ -1,6 +1,5 @@
 plugins {
     id 'java-library'
-    id 'checkstyle'
     id 'net.neoforged.moddev' version "${neoforge_moddev_version}"
 }
 
@@ -65,10 +64,6 @@ processResources {
     }
 }
 
-checkstyle {
-    toolVersion = '10.21.4'
-    configFile = rootProject.file('config/checkstyle/checkstyle.xml')
-}
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'

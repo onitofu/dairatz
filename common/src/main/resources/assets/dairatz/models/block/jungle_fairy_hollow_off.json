@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "down": "minecraft:block/jungle_log_top",
+    "up": "minecraft:block/jungle_log_top",
+    "north": "dairatz:block/jungle_fairy_hollow_off",
+    "south": "minecraft:block/jungle_log",
+    "east": "minecraft:block/jungle_log",
+    "west": "minecraft:block/jungle_log",
+    "particle": "minecraft:block/jungle_log"
+  }
+}

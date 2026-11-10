@@ -33,6 +33,9 @@ public abstract class AbstractFairyRenderer<
     @Override
     public void extractRenderState(E entity, FairyRenderState state, float partialTick) {
         super.extractRenderState(entity, state, partialTick);
+        state.kind = entity.kind();
+        state.appearance = entity.appearance();
+        state.resting = entity.isResting();
         state.idleAnimationState.copyFrom(entity.idleAnimationState);
     }
 }

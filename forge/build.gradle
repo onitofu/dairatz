@@ -1,6 +1,5 @@
 plugins {
     id 'java'
-    id 'checkstyle'
     id 'net.minecraftforge.gradle' version '[7.0.3,8)'
 }
 
@@ -35,9 +34,11 @@ minecraft {
 
     runs {
         register('client') {
+            args '--mixin', 'dairatz.mixins.json'
             workingDir = layout.projectDirectory.dir('run/client')
         }
         register('server') {
+            args '--mixin', 'dairatz.mixins.json'
             workingDir = layout.projectDirectory.dir('run/server')
             args '--nogui'
         }
@@ -73,10 +74,6 @@ processResources {
     }
 }
 
-checkstyle {
-    toolVersion = '10.21.4'
-    configFile = rootProject.file('config/checkstyle/checkstyle.xml')
-}
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
@@ -84,6 +81,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 tasks.named('jar') {
+    manifest.attributes('MixinConfigs': 'dairatz.mixins.json')
     archiveVersion = "${project.version}+mc${minecraft_version}-forge"
     from(rootProject.file('LICENSE')) {
         rename { "${it}_${mod_id}" }

@@ -13,12 +13,17 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import ru.nyansus.mc.config.DairatzConfig;
 
-public class WinterFairyEntity extends AbstractFairyEntity {
+public class WinterFairyEntity extends HousedFairyEntity {
     private static final int FREEZE_AROUND_INTERVAL = 20;
     private static final int FREEZE_AROUND_Y_RANGE = 2;
 
     public WinterFairyEntity(EntityType<? extends TamableAnimal> entityType, Level level) {
         super(entityType, level);
+    }
+
+    @Override
+    public FairyKind kind() {
+        return FairyKind.WINTER;
     }
 
     @Override
@@ -28,12 +33,12 @@ public class WinterFairyEntity extends AbstractFairyEntity {
 
     @Override
     protected int getFireRate() {
-        return DairatzConfig.winterFireRate;
+        return DairatzConfig.current().winterFireRate();
     }
 
     public static AttributeSupplier.Builder createAttributes() {
         return createFairyAttributes(
-                DairatzConfig.winterFairyHealth, DairatzConfig.winterFlySpeed);
+                DairatzConfig.current().winterFairyHealth(), DairatzConfig.current().winterFlySpeed());
     }
 
     @Override
@@ -60,7 +65,10 @@ public class WinterFairyEntity extends AbstractFairyEntity {
         if (owner == null) {
             return;
         }
-        int radius = DairatzConfig.winterFreezeRadius;
+        int radius = DairatzConfig.current().winterFreezeRadius();
+        if (radius == 0) {
+            return;
+        }
         BlockPos feetPos = owner.blockPosition();
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dz = -radius; dz <= radius; dz++) {
@@ -73,7 +81,10 @@ public class WinterFairyEntity extends AbstractFairyEntity {
     }
 
     private void freezeWaterAround() {
-        int radius = DairatzConfig.winterFreezeRadius;
+        int radius = DairatzConfig.current().winterFreezeRadius();
+        if (radius == 0) {
+            return;
+        }
         BlockPos center = blockPosition();
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dy = -FREEZE_AROUND_Y_RANGE; dy <= FREEZE_AROUND_Y_RANGE; dy++) {
@@ -88,6 +99,9 @@ public class WinterFairyEntity extends AbstractFairyEntity {
     }
 
     private void freezeWaterAt(BlockPos pos) {
+        if (!level().hasChunkAt(pos) || pos.getY() < level().getMinY() || pos.getY() > level().getMaxY()) {
+            return;
+        }
         BlockState state = level().getBlockState(pos);
         if (state.is(Blocks.WATER)
                 && state.getFluidState().isSource()
